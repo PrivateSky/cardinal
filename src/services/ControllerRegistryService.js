@@ -5,23 +5,20 @@ window.cardinal.pendingControllerRequests =
 
 const { controllers, pendingControllerRequests } = window.cardinal;
 
-class ControllerRegistryService {
-  registerController(controllerName, controller) {
+const ControllerRegistryService = {
+  registerController: (controllerName, controller) => {
     controllers[controllerName] = controller;
-    this._fullFillPreviousRequests(controllerName);
-  }
 
-  _fullFillPreviousRequests(controllerName) {
     if (pendingControllerRequests[controllerName]) {
       while (pendingControllerRequests[controllerName].length) {
         let request = pendingControllerRequests[controllerName].pop();
         request.resolve(controllers[controllerName]);
       }
     }
-  }
+  },
 
-  getController(controllerName) {
-    let controllerPromise = new Promise((resolve, reject) => {
+  getController: (controllerName) => {
+    return new Promise((resolve, reject) => {
       if (controllers[controllerName]) {
         resolve(controllers[controllerName]);
       } else {
@@ -40,8 +37,6 @@ class ControllerRegistryService {
           .catch(reject);
       }
     });
-
-    return controllerPromise;
   }
 }
 
