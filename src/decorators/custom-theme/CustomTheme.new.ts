@@ -1,14 +1,16 @@
 import { ComponentInterface, getElement } from "@stencil/core";
 import { applyStyles } from "../../utils/utilFunctions";
 
-const GLOBALS = {
+window.cardinal = window.cardinal || {};
+window.cardinal.customTheme = window.cardinal.customTheme || {
   THEME: undefined,
   IMPORTS: {},
   // DEPENDENCIES: {},
   EVENTS: {
-    GET_THEME: "getThemeConfig"
+    GET_THEME: "getThemeConfig",
   }
-}
+};
+const GLOBALS = window.cardinal.customTheme;
 
 type CustomThemeInterface = (
   target: ComponentInterface,

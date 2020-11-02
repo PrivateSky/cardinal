@@ -16,6 +16,7 @@ export const config: CardinalConfig = {
       type: 'dist',
       esmLoaderPath: '../loader',
       copy: [
+        { src: 'controllers/defaultApplicationConfig.json', warn: true },
         { src: 'controllers/AppConfigurationHelper.js', dest: "../cardinal/controllers/AppConfigurationHelper.js", warn: true },
         { src: 'controllers/base-controllers', dest: "../cardinal/controllers/base-controllers", warn: true },
         { src: 'events/*.js', dest: "../cardinal/events", warn: true },

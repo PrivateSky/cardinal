@@ -5,10 +5,17 @@ declare type CustomThemeInterface = (
   methodName: string
 ) => void;
 
+window.cardinal = window.cardinal || {};
+window.cardinal.oldCustomTheme = window.cardinal.oldCustomTheme || {};
+
+const { oldCustomTheme } = window.cardinal;
+oldCustomTheme.dependencies =  oldCustomTheme.dependencies || {};
+oldCustomTheme.imports =  oldCustomTheme.imports || {};
+oldCustomTheme.appTheme =  oldCustomTheme.appTheme || null;
+
+const { dependencies, imports } = oldCustomTheme;
+
 const regex = /@import.*?["']([^"']+)["'].*?;/g
-let dependencies = {};
-let imports = {};
-let appTheme;
 
 function checkForInnerDependencies(referrer, styleStr) {
 
@@ -182,7 +189,7 @@ export default function CustomTheme(): CustomThemeInterface {
           }))
         };
 
-        if (!appTheme) {
+        if (!oldCustomTheme.appTheme) {
           return new Promise((resolve)=>{
             let event = new CustomEvent("getThemeConfig", {
               bubbles: true,
@@ -192,8 +199,8 @@ export default function CustomTheme(): CustomThemeInterface {
                 if (err) {
                   return console.log(err);
                 }
-                appTheme = theme;
-                injectThemeStyle(appTheme).then(()=>{
+                oldCustomTheme.appTheme = theme;
+                injectThemeStyle(oldCustomTheme.appTheme).then(()=>{
                   resolve();
                 });
               }
@@ -203,7 +210,7 @@ export default function CustomTheme(): CustomThemeInterface {
           });
         }
         else{
-          return injectThemeStyle(appTheme);
+          return injectThemeStyle(oldCustomTheme.appTheme);
         }
       }
     };
