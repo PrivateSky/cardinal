@@ -13,19 +13,35 @@ const THEME = (_ => {
       },
       OVERRIDE: {
         KEYWORD: 'overridden',
-        OPTIONS: { ALL: 'all' }
+        OPTIONS: {
+          MATCH: { COMPONENT: 'component', MODE: 'mode' },
+          TYPE: { ALL: 'all', DIF: 'difference', INS: 'intersect' }
+        }
       },
       EXTEND: {
         KEYWORD: 'extended',
-        OPTIONS: { ALL: 'all', DIF: 'difference', INS: 'intersect' },
+        OPTIONS: {
+          MATCH: { COMPONENT: 'component', MODE: 'mode' },
+          TYPE: { ALL: 'all', DIF: 'difference', INS: 'intersect' }
+        }
       }
     }
   }
 
-  Object.keys(THEME.OPERATIONS).forEach(keyword => {
-    const operation = THEME.OPERATIONS[keyword];
-    if (operation.OPTIONS) operation._options = Object.values(operation.OPTIONS);
-  });
+  const check = (OPERATION, option) => {
+    if (typeof option !== 'object') return false;
+    const { OPTIONS } = OPERATION;
+    const keys = Object.keys(OPTIONS).map(key => key.toLowerCase());
+    for (const key of keys) {
+      if (!(key in option)) return false;
+      if (!(Object.values(OPTIONS[key.toUpperCase()]).includes(option[key]))) return false;
+    }
+    return true;
+  }
+
+  const { OPERATIONS: { OVERRIDE, EXTEND } } = THEME;
+  OVERRIDE._check = (option) => check(OVERRIDE, option);
+  EXTEND._check = (option) => check(EXTEND, option);
 
   return THEME;
 })();
@@ -76,7 +92,7 @@ class ThemeRunner {
   // clear-sky-theme:         01 02 03 __ __ 06 07 __ __ __ __ 12 13
   // citrus-theme:            __ __ __ 04 05 06 07 08 09 10 __ __ __
   // sunrise-theme:           01 02 03 04 05 __ 07 __ __ 10 11 __ __
-  // ___________________________________________________________
+  // ---------------------------------------------------------------
   // "themes": [...]          01 02 03 __ __ 06 07 __ __ __ __ 12 13
   // "overridden": "all"      01 02 03 __ __ 06 07 __ __ __ __ 12 13
   // "extended": "difference" 01 02 03 04 05 06 07 08 09 10 11 12 13
@@ -99,16 +115,25 @@ class ThemeRunner {
     }
   }
 
-  _isValidOption(operation, option) {
-    // only string and Array are allowed
-    if (typeof option !== 'string' && !Array.isArray(option)) return false;
-    if (typeof option === 'string' && !operation._options.includes(option)) return false;
-    return true;
-  }
-
   _themesTask(themes) {
+    // TODO: checking
+    const { THEMES } = THEME.OPERATIONS;
     this._themes = [...themes];
-    this._generated = this._styles[this._themes[0]];
+    this._generated = {};
+    const theme = this._themes[0];
+    for (const component of Object.keys(this._styles[theme])) {
+      this._generated[component] = {};
+      for (const mode of Object.keys(this._styles[theme][component])) {
+        this._generated[component][mode] = {
+          _max_priority: 1,
+          [theme]: {
+            _code: this._styles[theme][component][mode],
+            _from: THEMES.KEYWORD,
+            _priority: 1
+          }
+        }
+      }
+    }
   }
 
   _resetTask(value) {
@@ -116,33 +141,79 @@ class ThemeRunner {
   }
 
   _overrideTask(option) {
-    const { OVERRIDE } = THEME.OPERATIONS;
-    if (!this._isValidOption(OVERRIDE, option)) return;
+    if (!THEME.OPERATIONS.OVERRIDE._check(option)) return;
 
-    if (option === OVERRIDE.OPTIONS.ALL) {
-      for (const theme of this._themes) {
+    const { KEYWORD, OPTIONS } = THEME.OPERATIONS.OVERRIDE;
+    const { match, type } = option;
+    const themes = this._themes.slice(1);
+
+    // type is 'intersect'
+    if (type === OPTIONS.TYPE.INS) {
+
+      // match is 'component'
+      if (match === OPTIONS.MATCH.COMPONENT) {
+        for (const theme of themes) {
+          for (const component of Object.keys(this._styles[theme])) {
+            if (!this._generated[component]) continue;
+
+            for (const mode of Object.keys(this._styles[theme][component])) {
+              this._generated[component] = {
+                [mode]: {
+                  _max_priority: 1,
+                  [theme]: {
+                    _code: this._styles[theme][component][mode],
+                    _from: KEYWORD,
+                    _priority: 1
+                  }
+                }
+              }
+            }
+          }
+        }
+        return;
+      }
+
+      // match is 'mode'
+      for (const theme of themes) {
         for (const component of Object.keys(this._styles[theme])) {
           if (!this._generated[component]) continue;
 
-          // TODO: production mode
-          // this._generated[component] = this._styles[theme][component];
+          for (const mode of Object.keys(this._styles[theme][component])) {
+            if (!this._generated[component][mode]) continue;
 
-          this._generated[component] = { ...this._styles[theme][component], _from: `${theme} | ${OVERRIDE.KEYWORD}` }
+            this._generated[component][mode] = {
+              _max_priority: 1,
+              [theme]: {
+                _code: this._styles[theme][component][mode],
+                _from: KEYWORD,
+                _priority: 1,
+              }
+            }
+          }
         }
       }
       return;
     }
 
-    // TODO: for Array<Components>
+    // type is 'difference'
+    if (type === OPTIONS.TYPE.DIF) {
+      // TODO: not implemented
+    }
+
+    // type is 'all'
+    if (type === OPTIONS.TYPE.ALL) {
+      // TODO: not implemented
+    }
+
+    // TODO: not implemented
+    // for Array<Components>
   }
 
   _extendTask(option) {
     const { EXTEND } = THEME.OPERATIONS;
-    if (!this._isValidOption(EXTEND, option)) return;
+    if (!EXTEND._check(option)) return;
 
-    if (option === EXTEND.OPTIONS.ALL) {
-
-    }
+    // TODO: not implemented
   }
 }
 
