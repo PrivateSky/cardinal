@@ -1,63 +1,67 @@
 const path = require('path');
-const octopus = require('octopus');
+// const octopus = require('octopus');
 
-function buildCardinal(production = true) {
-  return {
-    name: 'build cardinal',
-    actions: [{
-      type: 'execute',
-      cmd: `npm run build-${production ? 'prod' : 'dev'}`
-    }]
-  }
-}
+const ThemeBuilder = require('./builder/Theme');
+const { FLAGS } = require('./helpers');
 
-function copyCardinal(destinations = []) {
-  const config = {
-    name: 'copy cardinal',
-    actions: []
-  }
-  for (const destination of destinations) {
-    console.log('Copying cardinal in', destination);
+const cardinal = {
+  distribution: {
+    build: (production = true) => ({
+      name: 'build-cardinal-dist',
+      actions: [
+        {
+          type: 'execute',
+          cmd: `npm run build-${production ? 'prod' : 'dev'}`
+        }
+      ]
+    }),
 
-    config.actions.push({
-      type: 'copy',
-      src: './dist/cardinal',
-      target: path.join(destination, 'cardinal'),
-      options: { 'overwrite': true }
+    copy: (destination) => ({
+      name: 'copy-cardinal-dist',
+      actions: [
+        {
+          type: 'copy',
+          src: './dist/cardinal',
+          target: path.join(destination, 'cardinal'),
+          options: { 'overwrite': true }
+        }
+      ]
     })
+  },
+
+  theme: {
+    build: (production = true) => new ThemeBuilder(production).run()
   }
-  return config;
 }
 
-function generateConfig() {
+function generateDistribution() {
   const args = process.argv;
+  const flags = FLAGS.get();
 
-  if (args.length < 3) {
-    console.error('Usage: npm run dist path_where_to_copy_cardinal_dist[,another_path]\n\n');
+  if (args.length !== 3) {
+    console.error(`Usage: node build_dist.js <path_for_cardinal_distribution> [${FLAGS.DEVELOPMENT}]\n`);
     process.exit(1);
   }
 
-  let production = true;
   const destination = args[2];
-  const destinations = destination.split(',').map(destination => destination.trim());
-
-  if (args[args.length - 1] === 'dev') {
-    production = false;
-  }
+  const production = !flags.includes(FLAGS.DEVELOPMENT);
 
   return {
     workDir: '.',
     dependencies: [
-      buildCardinal(production),
-      copyCardinal(destinations)
+      cardinal.distribution.build(production),
+      cardinal.distribution.copy(destination),
+      cardinal.theme.build(production)
     ]
-  };
+  }
 }
 
-octopus.run(generateConfig(), (err, result) => {
-  if (err) {
-    throw err;
-  }
-  console.log('\nOctopus result:', result);
-  console.log('Job done!');
-})
+generateDistribution();
+
+// octopus.run(generateDistribution(), (err, result) => {
+//   if (err) {
+//     throw err;
+//   }
+//   console.log('\nOctopus result:', result);
+//   console.log('Job done!');
+// })

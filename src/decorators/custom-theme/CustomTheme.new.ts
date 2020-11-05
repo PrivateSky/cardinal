@@ -145,7 +145,7 @@ export default function CustomTheme_v2(): CustomThemeInterface {
       return componentWillLoad && componentWillLoad.call(this);
     }
 
-    proto.disconnectedCallback = async function () {
+    proto.disconnectedCallback = async function() {
       const host = getElement(this);
 
       host.dispatchEvent(new CustomEvent(GLOBALS.EVENTS.REMOVE_STYLE, {
