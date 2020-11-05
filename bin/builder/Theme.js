@@ -36,6 +36,12 @@ const THEME = (_ => {
       if (!(key in option)) return false;
       if (!(Object.values(OPTIONS[key.toUpperCase()]).includes(option[key]))) return false;
     }
+    if (option.components) {
+      if (!Array.isArray(option.components)) return false;
+      for (const item of option.components) {
+        if (typeof item !== 'string') return false;
+      }
+    }
     return true;
   }
 
@@ -89,14 +95,6 @@ class ThemeRunner {
     this._styles = styles;
   }
 
-  // clear-sky-theme:         01 02 03 __ __ 06 07 __ __ __ __ 12 13
-  // citrus-theme:            __ __ __ 04 05 06 07 08 09 10 __ __ __
-  // sunrise-theme:           01 02 03 04 05 __ 07 __ __ 10 11 __ __
-  // ---------------------------------------------------------------
-  // "themes": [...]          01 02 03 __ __ 06 07 __ __ __ __ 12 13
-  // "overridden": "all"      01 02 03 __ __ 06 07 __ __ __ __ 12 13
-  // "extended": "difference" 01 02 03 04 05 06 07 08 09 10 11 12 13
-
   task(command, option) {
     const { OPERATIONS } = THEME;
     switch (option) {
@@ -120,6 +118,7 @@ class ThemeRunner {
     const { THEMES } = THEME.OPERATIONS;
     this._themes = [...themes];
     this._generated = {};
+
     const theme = this._themes[0];
     for (const component of Object.keys(this._styles[theme])) {
       this._generated[component] = {};
@@ -149,37 +148,17 @@ class ThemeRunner {
 
     // type is 'intersect'
     if (type === OPTIONS.TYPE.INS) {
-
-      // match is 'component'
-      if (match === OPTIONS.MATCH.COMPONENT) {
-        for (const theme of themes) {
-          for (const component of Object.keys(this._styles[theme])) {
-            if (!this._generated[component]) continue;
-
-            for (const mode of Object.keys(this._styles[theme][component])) {
-              this._generated[component] = {
-                [mode]: {
-                  _max_priority: 1,
-                  [theme]: {
-                    _code: this._styles[theme][component][mode],
-                    _from: KEYWORD,
-                    _priority: 1
-                  }
-                }
-              }
-            }
-          }
-        }
-        return;
-      }
-
-      // match is 'mode'
       for (const theme of themes) {
-        for (const component of Object.keys(this._styles[theme])) {
+        const components = option.components ? option.components : Object.keys(this._styles[theme]);
+
+        for (const component of components) {
+          if (!this._styles[theme][component]) continue;
           if (!this._generated[component]) continue;
 
+          if (match === OPTIONS.MATCH.COMPONENT) this._generated[component] = {};
+
           for (const mode of Object.keys(this._styles[theme][component])) {
-            if (!this._generated[component][mode]) continue;
+            if (match === OPTIONS.MATCH.MODE && !this._generated[component][mode]) continue;
 
             this._generated[component][mode] = {
               _max_priority: 1,
@@ -192,21 +171,85 @@ class ThemeRunner {
           }
         }
       }
+
       return;
     }
 
     // type is 'difference'
     if (type === OPTIONS.TYPE.DIF) {
-      // TODO: not implemented
+      const styles = {};
+
+      for (const theme of themes) {
+        const components = option.components ? option.components : Object.keys(this._styles[theme]);
+
+        for (const component of components) {
+          if (!this._styles[theme][component]) continue;
+
+          // match is 'component'
+          if (match === OPTIONS.MATCH.COMPONENT) {
+            if (this._generated[component]) continue;
+            styles[component] = {};
+
+            for (const mode of Object.keys(this._styles[theme][component])) {
+              styles[component][mode] = {
+                _max_priority: 1,
+                [theme]: {
+                  _code: this._styles[theme][component][mode],
+                  _from: KEYWORD,
+                  _priority: 1
+                }
+              }
+            }
+            continue;
+          }
+
+          // match is 'mode'
+          if (!styles[component]) styles[component] = {};
+          for (const mode of Object.keys(this._styles[theme][component])) {
+            if (this._generated[component] && this._generated[component][mode]) continue;
+
+            styles[component][mode] = {
+              _max_priority: 1,
+              [theme]: {
+                _code: this._styles[theme][component][mode],
+                _from: KEYWORD,
+                _priority: 1
+              }
+            }
+          }
+
+          if (Object.keys(styles[component]).length === 0) delete styles[component];
+        }
+      }
+
+      // match is 'component'
+      if (match === OPTIONS.MATCH.COMPONENT) {
+        for (const component in styles) {
+          this._generated[component] = styles[component];
+        }
+        return;
+      }
+
+      // match is 'mode'
+      for (const component in styles) {
+        for (const mode of Object.keys(styles[component])) {
+          if (!this._generated[component]) {
+            this._generated[component] = { [mode]: styles[component][mode] };
+            continue;
+          }
+          if (!this._generated[component][mode]) {
+            this._generated[component][mode] = styles[component][mode];
+          }
+        }
+      }
+
+      return;
     }
 
     // type is 'all'
     if (type === OPTIONS.TYPE.ALL) {
       // TODO: not implemented
     }
-
-    // TODO: not implemented
-    // for Array<Components>
   }
 
   _extendTask(option) {
@@ -238,7 +281,6 @@ class ThemeGenerator {
       }
     }
 
-    console.log('themes', run._themes);
     fs.writeFileSync(path.join(devPath, 'styles.generated.json'), JSON.stringify(run._generated, null, 4));
   }
 }
