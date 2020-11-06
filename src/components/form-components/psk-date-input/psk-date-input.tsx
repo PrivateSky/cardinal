@@ -36,20 +36,53 @@ export class PskDateInput {
             specificProps={{
                 onKeyUp: this.__inputHandler.bind(this),
                 onChange: this.__inputHandler.bind(this),
+                onfocusout: this.__focusOutHandler.bind(this),
                 "data-date": dateToDisplay,
-                class: this.dataFormat ? "form-control formated-date" : 'form-control'
+                class: this.dataFormat && !this.__isSafari() ? "form-control formated-date" : 'form-control'
             }} />
+    }
+
+    __getBrowser = () => {
+      let userAgent = navigator.userAgent,tem,M=userAgent.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+      if(/trident/i.test(M[1])){
+        tem=/\brv[ :]+(\d+)/g.exec(userAgent) || [];
+        return {name:'IE',version:(tem[1]||'')};
+      }
+      if(M[1]==='Chrome'){
+        tem=userAgent.match(/\bOPR|Edge\/(\d+)/)
+        if(tem!=null)
+        {
+          return {name:'Opera', version:tem[1]};
+        }
+      }
+      M=M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
+      if((tem=userAgent.match(/version\/(\d+)/i))!=null) {M.splice(1,1,tem[1]);}
+      return {
+        name: M[0],
+        version: M[1]
+      };
+    }
+
+    __isSafari = () => {
+      return this.__getBrowser().name.indexOf('Safari') !== -1;
     }
 
     __inputHandler = (event) => {
         event.stopImmediatePropagation();
-        let currentDate = event.target.value;
-
-        if (currentDate && currentDate.trim().length) {
-            const newValue = new Date(currentDate).getTime();
-            this.modelHandler.updateModel('value', newValue);
+        if(!this.__isSafari()){
+          this.__focusOutHandler(event);
         }
     };
+
+  __focusOutHandler = (event) => {
+    event.stopImmediatePropagation();
+    let currentDate = event.target.value;
+
+    if (currentDate && currentDate.trim().length) {
+      const newValue = new Date(currentDate).getTime();
+      this.modelHandler.updateModel('value', newValue);
+    }
+  };
 
     __getFormattedDate = () => {
         if (!this.value || !this.value.trim().length) {
@@ -84,7 +117,6 @@ export class PskDateInput {
                 .map((type: string) => dateVariables[type])
                 .join('/')
             : dateValue;
-
         return {
             dateToDisplay: formattedDate,
             dateToAssign: dateValue
@@ -149,7 +181,7 @@ export class PskDateInput {
 
     @TableOfContentProperty({
         isMandatory: false,
-        description: `This property is the format of the date. At the moment the component can format only "MM DD YYYY", "DD MM YYYY", "MM YYYY DD", "YYYY MM DD", "YYYY DD MM"   and "DD YYYY MM".`,
+        description: `This property is the format of the date. At the moment the component can format only "MM DD YYYY", "DD MM YYYY", "MM YYYY DD", "YYYY MM DD", "YYYY DD MM" and "DD YYYY MM".`,
         propertyType: 'string',
         defaultValue: "null"
     })
