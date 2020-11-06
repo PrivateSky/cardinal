@@ -28,7 +28,7 @@ const THEME = (_ => {
     }
   }
 
-  const check = (OPERATION, option) => {
+  const _check = (OPERATION, option) => {
     if (typeof option !== 'object') return false;
     const { OPTIONS } = OPERATION;
     const keys = Object.keys(OPTIONS).map(key => key.toLowerCase());
@@ -45,9 +45,16 @@ const THEME = (_ => {
     return true;
   }
 
-  const { OPERATIONS: { OVERRIDE, EXTEND } } = THEME;
-  OVERRIDE._check = (option) => check(OVERRIDE, option);
-  EXTEND._check = (option) => check(EXTEND, option);
+  const { OPERATIONS: { THEMES, OVERRIDE, EXTEND } } = THEME;
+  THEMES.isValid = (themes) => {
+    if (!Array.isArray(themes)) return false;
+    for (const theme of themes) {
+      if (typeof theme !== 'string') return false;
+    }
+    return true;
+  }
+  OVERRIDE.isValid = (option) => _check(OVERRIDE, option);
+  EXTEND.isValid = (option) => _check(EXTEND, option);
 
   return THEME;
 })();
@@ -114,12 +121,13 @@ class ThemeRunner {
   }
 
   _themesTask(themes) {
-    // TODO: checking
-    const { THEMES } = THEME.OPERATIONS;
+    const { KEYWORD, isValid } = THEME.OPERATIONS.THEMES;
+    if (!isValid(themes)) return;
+
     this._themes = [...themes];
     this._generated = {};
-
     const theme = this._themes[0];
+
     for (const component of Object.keys(this._styles[theme])) {
       this._generated[component] = {};
       for (const mode of Object.keys(this._styles[theme][component])) {
@@ -127,7 +135,7 @@ class ThemeRunner {
           _max_priority: 1,
           [theme]: {
             _code: this._styles[theme][component][mode],
-            _from: THEMES.KEYWORD,
+            _from: KEYWORD,
             _priority: 1
           }
         }
@@ -140,9 +148,9 @@ class ThemeRunner {
   }
 
   _overrideTask(option) {
-    if (!THEME.OPERATIONS.OVERRIDE._check(option)) return;
+    const { KEYWORD, OPTIONS, isValid } = THEME.OPERATIONS.OVERRIDE;
+    if (!isValid(option)) return;
 
-    const { KEYWORD, OPTIONS } = THEME.OPERATIONS.OVERRIDE;
     const { match, type } = option;
     const themes = this._themes.slice(1);
 
@@ -248,13 +256,35 @@ class ThemeRunner {
 
     // type is 'all'
     if (type === OPTIONS.TYPE.ALL) {
-      // TODO: not implemented
+      for (const theme of themes) {
+        const components = option.components ? option.components : Object.keys(this._styles[theme]);
+
+        for (const component of components) {
+          if (!this._styles[theme][component]) continue;
+
+          // match is 'component' or 'mode'
+          if (match === OPTIONS.MATCH.COMPONENT || (match === OPTIONS.MATCH.MODE && !this._generated[component])) {
+            this._generated[component] = {};
+          }
+
+          for (const mode of Object.keys(this._styles[theme][component])) {
+            this._generated[component][mode] = {
+              _max_priority: 1,
+              [theme]: {
+                _code: this._styles[theme][component][mode],
+                _from: KEYWORD,
+                _priority: 1,
+              }
+            }
+          }
+        }
+      }
     }
   }
 
   _extendTask(option) {
-    const { EXTEND } = THEME.OPERATIONS;
-    if (!EXTEND._check(option)) return;
+    const { KEYWORD, OPTIONS, isValid } = THEME.OPERATIONS.EXTEND;
+    if (!isValid(option)) return;
 
     // TODO: not implemented
   }
