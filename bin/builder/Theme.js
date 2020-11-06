@@ -97,6 +97,64 @@ class ThemeRunner {
   _themes = [];
   _styles = {};
   _generated = {};
+  _helpers = {
+    copy: (dest, src, { OPTIONS, match }) => {
+      // match is 'component'
+      if (match === OPTIONS.MATCH.COMPONENT) {
+        for (const component of Object.keys(src)) {
+          this._generated[component] = src[component];
+        }
+        return;
+      }
+
+      // match is 'mode'
+      if (match === OPTIONS.MATCH.MODE) {
+        for (const component of Object.keys(src)) {
+          for (const mode of Object.keys(src[component])) {
+            if (!dest[component]) {
+              dest[component] = { [mode]: src[component][mode] };
+              continue;
+            }
+            if (!dest[component][mode]) {
+              dest[component][mode] = src[component][mode];
+            }
+          }
+        }
+      }
+    },
+    override: {
+      copy: (dest, src, { match }) => {
+        const OPTIONS = THEME.OPERATIONS.OVERRIDE.OPTIONS
+        this._helpers.copy(dest, src, { OPTIONS, match })
+      }
+    },
+    extend: {
+      copy: (dest, src, { match }) => {
+        const OPTIONS = THEME.OPERATIONS.EXTEND.OPTIONS
+        this._helpers.copy(dest, src, { OPTIONS, match })
+      },
+      insert: (theme, component, mode, styles) => {
+        if (!styles[component][mode]) {
+          styles[component][mode] = {
+            _max_priority: 1,
+            [theme]: {
+              _code: this._styles[theme][component][mode],
+              _from: THEME.OPERATIONS.EXTEND.KEYWORD,
+              _priority: 1,
+            }
+          }
+          return;
+        }
+
+        styles[component][mode][theme] = {
+          _code: this._styles[theme][component][mode],
+          _from: THEME.OPERATIONS.EXTEND.KEYWORD,
+          _priority: styles[component][mode]._max_priority + 1,
+        }
+        styles[component][mode]._max_priority++;
+      }
+    }
+  };
 
   constructor(styles) {
     this._styles = styles;
@@ -143,7 +201,7 @@ class ThemeRunner {
     }
   }
 
-  _resetTask(value) {
+  _resetTask(option) {
     // TODO: not implemented
   }
 
@@ -225,31 +283,11 @@ class ThemeRunner {
               }
             }
           }
-
           if (Object.keys(styles[component]).length === 0) delete styles[component];
         }
       }
 
-      // match is 'component'
-      if (match === OPTIONS.MATCH.COMPONENT) {
-        for (const component in styles) {
-          this._generated[component] = styles[component];
-        }
-        return;
-      }
-
-      // match is 'mode'
-      for (const component in styles) {
-        for (const mode of Object.keys(styles[component])) {
-          if (!this._generated[component]) {
-            this._generated[component] = { [mode]: styles[component][mode] };
-            continue;
-          }
-          if (!this._generated[component][mode]) {
-            this._generated[component][mode] = styles[component][mode];
-          }
-        }
-      }
+      this._helpers.override.copy(this._generated, styles, { match });
 
       return;
     }
@@ -283,10 +321,92 @@ class ThemeRunner {
   }
 
   _extendTask(option) {
-    const { KEYWORD, OPTIONS, isValid } = THEME.OPERATIONS.EXTEND;
+    const { OPTIONS, isValid } = THEME.OPERATIONS.EXTEND;
     if (!isValid(option)) return;
 
-    // TODO: not implemented
+    const { match, type } = option;
+    const themes = this._themes.slice(1);
+
+    // type is 'intersect'
+    if (type === OPTIONS.TYPE.INS) {
+      for (const theme of themes) {
+        const components = option.components ? option.components : Object.keys(this._styles[theme]);
+
+        for (const component of components) {
+          if (!this._styles[theme][component]) continue;
+          if (!this._generated[component]) continue;
+
+          // match is 'component'
+          if (match === OPTIONS.MATCH.COMPONENT) {
+            for (const mode of Object.keys(this._styles[theme][component])) {
+              this._helpers.extend.insert(theme, component, mode, this._generated);
+            }
+            continue;
+          }
+
+          // match is 'mode'
+          for (const mode of Object.keys(this._styles[theme][component])) {
+            if (!this._generated[component][mode]) continue;
+            this._helpers.extend.insert(theme, component, mode, this._generated);
+          }
+        }
+      }
+    }
+
+    // type is 'difference'
+    if (type === OPTIONS.TYPE.DIF) {
+      const styles = {};
+
+      for (const theme of themes) {
+        const components = option.components ? option.components : Object.keys(this._styles[theme]);
+
+        for (const component of components) {
+          if (!this._styles[theme][component]) continue;
+
+          // match is 'component'
+          if (match === OPTIONS.MATCH.COMPONENT) {
+            if (this._generated[component]) continue;
+            if (!styles[component]) styles[component] = {};
+            for (const mode of Object.keys(this._styles[theme][component])) {
+              this._helpers.extend.insert(theme, component, mode, styles);
+            }
+            continue;
+          }
+
+          // match is 'mode'
+          if (!styles[component]) styles[component] = {};
+          for (const mode of Object.keys(this._styles[theme][component])) {
+            if (this._generated[component] && this._generated[component][mode]) continue;
+            this._helpers.extend.insert(theme, component, mode, styles);
+          }
+          if (Object.keys(styles[component]).length === 0) delete styles[component];
+        }
+      }
+
+      this._helpers.extend.copy(this._generated, styles, { match });
+
+      return;
+    }
+
+    // type is 'all'
+    if (type === OPTIONS.TYPE.ALL) {
+      for (const theme of themes) {
+        const components = option.components ? option.components : Object.keys(this._styles[theme]);
+
+        for (const component of components) {
+          if (!this._styles[theme][component]) continue;
+
+          // match is 'component' or 'mode'
+          if (!this._generated[component]) {
+            this._generated[component] = {};
+          }
+
+          for (const mode of Object.keys(this._styles[theme][component])) {
+            this._helpers.extend.insert(theme, component, mode, this._generated);
+          }
+        }
+      }
+    }
   }
 }
 
