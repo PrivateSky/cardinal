@@ -30,10 +30,14 @@ const THEME = (_ => {
 
   const _check = (OPERATION, option) => {
     if (typeof option !== 'object') return false;
-    const { OPTIONS } = OPERATION;
+    const { KEYWORD, OPTIONS } = OPERATION;
+    const { EXTEND } = THEME.OPERATIONS;
     const keys = Object.keys(OPTIONS).map(key => key.toLowerCase());
     for (const key of keys) {
-      if (!(key in option)) return false;
+      if (!(key in option)) {
+        if (KEYWORD === EXTEND.KEYWORD && option.type === EXTEND.OPTIONS.TYPE.ALL) continue;
+        return false;
+      }
       if (!(Object.values(OPTIONS[key.toUpperCase()]).includes(option[key]))) return false;
     }
     if (option.components) {
@@ -183,20 +187,29 @@ class ThemeRunner {
     if (!isValid(themes)) return;
 
     this._themes = [...themes];
-    this._generated = {};
     const theme = this._themes[0];
 
     for (const component of Object.keys(this._styles[theme])) {
-      this._generated[component] = {};
+      if (!this._generated[component]) this._generated[component] = {};
       for (const mode of Object.keys(this._styles[theme][component])) {
-        this._generated[component][mode] = {
-          _max_priority: 1,
-          [theme]: {
-            _code: this._styles[theme][component][mode],
-            _from: KEYWORD,
-            _priority: 1
+        if (!this._generated[component][mode]) {
+          this._generated[component][mode] = {
+            _max_priority: 1,
+            [theme]: {
+              _code: this._styles[theme][component][mode],
+              _from: KEYWORD,
+              _priority: 1
+            }
           }
+          continue;
         }
+
+        this._generated[component][mode][theme] = {
+          _code: this._styles[theme][component][mode],
+          _from: KEYWORD,
+          _priority: this._generated[component][mode]._max_priority + 1
+        }
+        this._generated[component][mode]._max_priority++;
       }
     }
   }
@@ -396,7 +409,7 @@ class ThemeRunner {
         for (const component of components) {
           if (!this._styles[theme][component]) continue;
 
-          // match is 'component' or 'mode'
+          // match is non-existent
           if (!this._generated[component]) {
             this._generated[component] = {};
           }
@@ -414,7 +427,7 @@ class ThemeGenerator {
   config = {};
 
   constructor(production = true) {
-    this.loader = new ThemeLoader(path.join('..', 'themes'))
+    this.loader = new ThemeLoader(path.join('..', 'themes'));
   }
 
   run() {
