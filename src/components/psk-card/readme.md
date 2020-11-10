@@ -18,7 +18,6 @@
 ### Used by
 
  - [psk-barcode-generator](../psk-barcode/psk-barcode-generator)
- - [psk-barcode-scanner](../psk-barcode/psk-barcode-scanner)
  - [psk-chapter](../psk-chapter)
  - [psk-description](../psk-description)
  - [psk-toc](../psk-toc)
@@ -32,7 +31,6 @@
 graph TD;
   psk-card --> psk-copy-clipboard
   psk-barcode-generator --> psk-card
-  psk-barcode-scanner --> psk-card
   psk-chapter --> psk-card
   psk-description --> psk-card
   psk-toc --> psk-card

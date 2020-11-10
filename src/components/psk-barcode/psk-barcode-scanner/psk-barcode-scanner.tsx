@@ -416,31 +416,42 @@ export class PskBarcodeScanner {
     }
     let fileBrowsingIsAllowed = stringToBoolean(this.allowFileBrowsing);
 
+    const layout = {
+      display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center',
+      padding: '1em', margin: '0.25em 0'
+    };
+
     return (
-      [<script async src="/cardinal/libs/zxing.js"></script>,
-        <psk-card title={this.title}>
-          {this.cameraIsAvailable === false ? <psk-highlight title="No camera detected" type-of-highlight="warning">
-            <p>
-              You can still use your device files to check for barcodes
-            </p>
-          </psk-highlight> : null}
-          {fileBrowsingIsAllowed || this.cameraIsAvailable === false ?
-            [
-              <psk-files-chooser accept="image/*" label="Load a file from device" event-name="loaded-local-file"/>,
-              <psk-button event-name="use-camera" label="Use camera" style={{display: "none"}}
-                          id="use-camera-btn"/>
-            ] :
-            null
+      [
+        <script async src="/cardinal/libs/zxing.js"/>,
+        <div title={this.title}>
+          { this.cameraIsAvailable === false
+            ? (
+              <psk-highlight title="No camera detected" type-of-highlight="warning">
+                <p>You can still use your device files to check for barcodes!</p>
+              </psk-highlight>
+            )
+            : [
+              <div style={{position: "relative"}} id="scanner_container">
+                <video muted autoplay id="video" playsinline={true} style={{width: "100%"}}/>
+              </div>,
+              <div style={layout}>
+                <label htmlFor="videoSource" style={{margin: '0'}}>Video source</label>
+                <div class="select" id="camera-source">
+                  <select id="videoSource" style={{background: 'transparent', padding: '5px', border: '0'}} />
+                </div>
+              </div>
+            ]
           }
-          <div class="select" id="camera-source">
-            <label>Video source: </label><select id="videoSource"></select>
-          </div>
-
-          <div style={{position: "relative"}} id="scanner_container">
-            <video muted autoplay id="video" playsinline="true" style={{width: "100%"}}></video>
-          </div>
-
-        </psk-card>]
+          { fileBrowsingIsAllowed || this.cameraIsAvailable === false
+            ? [
+              <psk-files-chooser accept="image/*" label="Load a file from device" event-name="loaded-local-file"/>,
+              <psk-button event-name="use-camera" label="Use camera" style={{display: "none"}} id="use-camera-btn"/>
+            ]
+            : null
+          }
+        </div>
+      ]
     );
   }
 }
