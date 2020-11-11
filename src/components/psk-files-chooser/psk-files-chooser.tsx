@@ -116,7 +116,7 @@ export class PskFilesChooser {
     }
 
     if (this.listFiles && this.files) {
-      selectedFiles = <div>
+      selectedFiles = <div class={this.files.length > 0 ? "selectedFiles" : ""}>
         {this.files.map((file) => this.mapFileToDiv(file))}
       </div>
     }
