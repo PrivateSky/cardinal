@@ -1,36 +1,29 @@
-import BarcodeUtilFunctions from "./barcode-util-functions";
+export default class CanvasOverlay {
 
-const MOBILE_DIMENSIONS = {
-  WIDTH:240,
-  HEIGHT:320,
-  FRAME_WIDTH:160
-}
-const PC_DIMENSIONS = {
-  WIDTH:640,
-  HEIGHT:480,
-  FRAME_WIDTH:300
-}
-
-export default class CanvasOverlay{
-
-  constructor(scannerContainer, restrictResponsiveness) {
-    this.PC_DIMENSIONS = PC_DIMENSIONS;
-    this.MOBILE_DIMENSIONS = MOBILE_DIMENSIONS;
+  constructor(scannerContainer) {
     this.scannerContainer = scannerContainer;
-    this.isMobileDevice = BarcodeUtilFunctions.isMobile(restrictResponsiveness);
+    this.dimensions = this.getDimensions(this.scannerContainer);
   }
 
-  addCanvasToView(canvasId, customStyle){
-    let canvasElement = document.createElement("canvas");
-    canvasElement.id=canvasId;
-    canvasElement.width=this.isMobileDevice?MOBILE_DIMENSIONS.WIDTH:PC_DIMENSIONS.WIDTH;
-    canvasElement.height=this.isMobileDevice?MOBILE_DIMENSIONS.HEIGHT:PC_DIMENSIONS.HEIGHT;
-    canvasElement.style.position = "absolute";
-    canvasElement.style.width = "100%";
-    canvasElement.style.top = "0";
-    canvasElement.style.left = "0";
+  getDimensions(scannerContainer) {
+    return {
+      width: scannerContainer.offsetWidth,
+      height: scannerContainer.offsetHeight,
+      frame: 0.75 * Math.min(scannerContainer.offsetWidth, scannerContainer.offsetHeight)
+    }
+  }
 
-    if (typeof customStyle === "object") {
+  addCanvasToView(canvasId, customStyle) {
+    let canvasElement = document.createElement('canvas');
+    canvasElement.id = canvasId;
+    canvasElement.width = this.dimensions.width;
+    canvasElement.height= this.dimensions.height;
+    canvasElement.style.position = 'absolute';
+    canvasElement.style.width = '100%';
+    canvasElement.style.top = '0';
+    canvasElement.style.left = '0';
+
+    if (typeof customStyle === 'object') {
       Object.keys(customStyle).forEach(key => {
         if (canvasElement.style[key])
           canvasElement.style[key] = customStyle[key];
@@ -40,5 +33,4 @@ export default class CanvasOverlay{
     this.scannerContainer.appendChild(canvasElement);
     return canvasElement;
   }
-
 }

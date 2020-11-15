@@ -75,7 +75,7 @@ export namespace Components {
     interface PskBarcodeScanner {
         "allowFileBrowsing": boolean;
         "data": any;
-        "normalSize": boolean;
+        "disableFrame": boolean;
         "title": string;
     }
     interface PskBreadcrumbNavigator {
@@ -1300,7 +1300,7 @@ declare namespace LocalJSX {
     interface PskBarcodeScanner {
         "allowFileBrowsing"?: boolean;
         "data"?: any;
-        "normalSize"?: boolean;
+        "disableFrame"?: boolean;
         "title"?: string;
     }
     interface PskBreadcrumbNavigator {

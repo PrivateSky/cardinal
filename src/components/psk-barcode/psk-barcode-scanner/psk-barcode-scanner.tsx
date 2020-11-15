@@ -1,12 +1,15 @@
-import {Component, h, Prop, Element} from '@stencil/core';
-import CustomTheme from "../../../decorators/CustomTheme";
-import {BindModel} from '../../../decorators/BindModel';
+import { Component, Prop, Element, h } from '@stencil/core';
+
+import CustomTheme from '../../../decorators/CustomTheme';
+import { BindModel } from '../../../decorators';
+import { TableOfContentProperty } from '../../../decorators';
+
+import VideoOverlay  from './VideoOverlay.js';
+import ImageOverlay  from './ImageOverlay.js';
 import audioData from './audioData.js';
-import {stringToBoolean} from "../../../utils/utilFunctions";
-import BarcodeUtilFunctions from "./barcode-util-functions.js";
-import VideoOverlay  from "./VideoOverlay.js";
-import ImageOverlay  from "./ImageOverlay.js";
-import {TableOfContentProperty} from "../../../decorators/TableOfContentProperty";
+import { stringToBoolean } from '../../../utils';
+import BarcodeUtilFunctions from './barcode-util-functions.js';
+
 const SCAN_TIMEOUT = 100;
 
 @Component({
@@ -15,29 +18,42 @@ const SCAN_TIMEOUT = 100;
 export class PskBarcodeScanner {
 
   @BindModel() modelHandler;
+
   @CustomTheme()
+
   @Element() element;
+
   @TableOfContentProperty({
     description: `The data-model that will be updated with the retrieved data from the scanner.`,
     isMandatory: true,
     propertyType: `string`
   })
-  @Prop() data:any;
+  @Prop() data: any;
+
   @TableOfContentProperty({
     description: `A title that will be used for the current component instance.`,
     isMandatory: false,
     propertyType: `string`
   })
-  @Prop() title: string = "";
+  @Prop() title: string = '';
+
   @TableOfContentProperty({
     description: `A boolean value indicating that the current component instance is accepting files from the device. Please note that if no camera is detected, this feature will be automatically enabled.`,
     isMandatory: false,
     propertyType: `boolean`
   })
-  @Prop() allowFileBrowsing:boolean = false;
+  @Prop() allowFileBrowsing: boolean = false;
 
-  // force camera to not be stretched (PC DIMENSIONS)
-  @Prop() normalSize: boolean = false;
+  @TableOfContentProperty({
+    description: [
+      `A boolean value indicating the scope of the 2D matrix of scanner.`,
+      `If it is <code>true</code> the component will analyze only the center square / frame.`,
+      `Otherwise the entire screen.`
+    ],
+    isMandatory: false,
+    propertyType: `boolean`
+  })
+  @Prop() disableFrame = false;
 
   private componentIsDisconnected = false;
   private ZXing = null;
@@ -47,29 +63,32 @@ export class PskBarcodeScanner {
   private cameraIsOn = false;
   private overlay = null;
 
-
-  stopTracks(){
+  stopTracks() {
     if (window['stream']) {
-      window['stream'].getTracks().forEach(function(track) {
-        track.stop();
-      });
+      window['stream'].getTracks().forEach(track => track.stop());
       this.cameraIsOn = false;
     }
   }
 
-  handleCameraError  = (error) =>{
+  handleCameraError(error) {
     console.log('Error: ', error);
     this.cameraIsAvailable = false;
     this.stopCameraUsage();
   }
 
-  changeCamera = () =>{
+  changeCamera() {
     this.stopTracks()
     this.getStream();
   }
 
-  cleanupOverlays(){
-    if(this.overlay){
+  drawOverlays(scannerContainer) {
+    this.overlay = new VideoOverlay(scannerContainer, this.videoElement);
+    this.overlay.createOverlaysCanvases('lensCanvas', 'overlayCanvas');
+    this.overlay.drawLensCanvas();
+  }
+
+  cleanupOverlays() {
+    if (this.overlay) {
       this.overlay.removeOverlays();
     }
   }
@@ -78,46 +97,49 @@ export class PskBarcodeScanner {
    * stop camera and prepare the view for enabling it again
    */
   stopCameraUsage() {
-    let scannerContainer = this.element.querySelector("#scanner_container");
-    let useCameraBtn = this.element.querySelector("#use-camera-btn");
+    let scannerContainer = this.element.querySelector('#scanner_container');
+    let useCameraBtn = this.element.querySelector('#use-camera-btn');
 
     if (useCameraBtn) {
       if (this.cameraIsAvailable) {
         this.stopTracks();
-        useCameraBtn.style.display = "block";
+        useCameraBtn.style.display = 'block';
       } else {
-        useCameraBtn.style.display = "none";
+        useCameraBtn.style.display = 'none';
       }
     }
 
-    this.element.querySelector("#video").style.display = "none";
-    this.element.querySelector("#camera-source").style.display = "none";
+    this.element.querySelector('#video').style.display = 'none';
+    this.element.querySelector('#camera-source').style.display = 'none';
     let videoSelectOptions = this.element.querySelector('select#videoSource');
     videoSelectOptions.options.length = 0;
-    videoSelectOptions.removeEventListener("change", this.changeCamera);
+    videoSelectOptions.removeEventListener('change', this.changeCamera);
 
     this.cleanupOverlays();
     this.overlay = new ImageOverlay(scannerContainer);
-    this.overlay.createOverlaysCanvases("imageCanvas");
+    this.overlay.createOverlaysCanvases('imageCanvas');
   }
 
   /**
    * start camera and prepare the view for overlaying the video stream
    */
-  startCameraUsage(){
-    let useCameraBtn = this.element.querySelector("#use-camera-btn");
-    if(useCameraBtn){
-      useCameraBtn.style.display="none";
+  startCameraUsage() {
+    let useCameraBtn = this.element.querySelector('#use-camera-btn');
+    if (useCameraBtn) {
+      useCameraBtn.style.display = 'none';
     }
-    this.element.querySelector("#video").style.display="block";
-    this.element.querySelector("#camera-source").style.display="block";
+    this.element.querySelector('#video').style.display = 'block';
+    this.element.querySelector('#camera-source').style.display = 'block';
 
-    let scannerContainer = this.element.querySelector("#scanner_container");
+    let scannerContainer = this.element.querySelector('#scanner_container');
     this.cleanupOverlays();
     this.startCameraScan();
-    this.overlay = new VideoOverlay(scannerContainer, this.videoElement, this.normalSize);
-    this.overlay.createOverlaysCanvases("lensCanvas", "overlayCanvas");
-    this.overlay.drawLensCanvas();
+    this.drawOverlays(scannerContainer);
+
+    window.addEventListener('resize', _ => {
+      this.cleanupOverlays();
+      this.drawOverlays(scannerContainer);
+    });
   }
 
   removeDeviceIdFromList(deviceId) {
@@ -125,11 +147,9 @@ export class PskBarcodeScanner {
     for (let i = 0; i < camerasSelectList.length; i++) {
       if (camerasSelectList.options[i].value === deviceId) {
         camerasSelectList.remove(i);
-        //select nextElement if available
-        if(camerasSelectList.length){
+        if (camerasSelectList.length) {
           camerasSelectList.selectedIndex = i;
-        }
-        else{
+        } else {
           camerasSelectList.selectedIndex = -1;
         }
         break;
@@ -140,9 +160,11 @@ export class PskBarcodeScanner {
   /**
    * select the stream and get barcode from the stream
    */
-  getStream = () => {
+  getStream() {
     let camerasSelectList = this.element.querySelector('select#videoSource');
-    let alternativeCameras = Array.from(camerasSelectList.querySelectorAll("option")).map((option: any) => {
+    // let scannerContainer = this.element.querySelector('#scanner_container');
+
+    let alternativeCameras = Array.from(camerasSelectList.querySelectorAll('option')).map((option: any) => {
       return option.value;
     }).filter((cameraId) => {
       return cameraId !== camerasSelectList.value
@@ -154,7 +176,15 @@ export class PskBarcodeScanner {
 
     if (camerasSelectList.value) {
       constraints['video'] = {
-        deviceId: {exact: camerasSelectList.value}
+        // width: { ideal: scannerContainer.offsetWidth },
+        // height: { ideal: scannerContainer.offsetHeight },
+        facingMode: {
+          // this is the back camera
+          ideal: 'environment'
+        },
+        deviceId: {
+          exact: camerasSelectList.value
+        }
       }
     } else {
       constraints['video'] = true
@@ -168,7 +198,7 @@ export class PskBarcodeScanner {
     }
 
     let startVideo = (constraints) => {
-      navigator.mediaDevices.getUserMedia(constraints).then(gotStream.bind(this)).catch((err) => {
+      navigator.mediaDevices.getUserMedia(constraints).then(gotStream.bind(this)).catch(err => {
         if (err.message === "Could not start video source") {
           if (alternativeCameras.length) {
             this.removeDeviceIdFromList(constraints['video'].deviceId.exact);
@@ -191,6 +221,7 @@ export class PskBarcodeScanner {
   startCameraScan() {
     this.videoElement = this.element.querySelector('video');
     let videoSelect = this.element.querySelector('select#videoSource');
+    let scannerContainer = this.element.querySelector('#scanner_container');
 
     let gotDevices = (deviceInfos) => {
       if (deviceInfos.length) {
@@ -199,12 +230,16 @@ export class PskBarcodeScanner {
           let option = document.createElement('option');
           option.value = deviceInfo.deviceId;
           if (deviceInfo.kind === 'videoinput') {
-            option.text = deviceInfo.label || 'camera ' +
-              (videoSelect.length + 1);
+            option.text = deviceInfo.label || `Camera $(videoSelect.length + 1)`;
             videoSelect.appendChild(option);
           }
         }
 
+        if (videoSelect.length === 1) {
+          scannerContainer.nextElementSibling.style.display = 'none';
+          this.cleanupOverlays();
+          this.drawOverlays(scannerContainer);
+        }
       } else {
         this.stopCameraUsage();
       }
@@ -212,7 +247,7 @@ export class PskBarcodeScanner {
 
     navigator.mediaDevices.enumerateDevices()
       .then(gotDevices).then(this.getStream).catch(this.handleCameraError);
-    videoSelect.addEventListener("change",this.changeCamera.bind(this));
+    videoSelect.addEventListener('change', this.changeCamera.bind(this));
   }
 
 
@@ -233,17 +268,15 @@ export class PskBarcodeScanner {
     };
 
     setTimeout(tick, SCAN_TIMEOUT);
-    //@ts-ignore
-    let decodeCallback = (ptr, len, resultIndex, resultCount, x1, y1, x2, y2, x3, y3, x4, y4) => {
+    let decodeCallback = (ptr, len, _resultIndex, _resultCount, x1, y1, x2, y2, x3, y3, x4, y4) => {
       let result = new Uint8Array(this.ZXing.HEAPU8.buffer, ptr, len);
-
-      let stringResult = "";
+      let stringResult = '';
       let separatorIndex = 0;
       let separatorStarted = false;
       for (let i = 0; i < result.length; i++) {
-        //29 -  group separator char code
+        // 29 - group separator char code
         if (result[i] == 29) {
-          stringResult += "(";
+          stringResult += '(';
           separatorStarted = true;
           separatorIndex = 0;
         } else {
@@ -251,15 +284,13 @@ export class PskBarcodeScanner {
           if (separatorStarted) {
             separatorIndex++;
             if (separatorIndex == 2) {
-              stringResult += ")";
+              stringResult += ')';
               separatorStarted = false;
             }
           }
         }
       }
-
-      resultCallback({points:{x1, y1, x2, y2, x3, y3, x4, y4}, data:stringResult})
-
+      resultCallback({ points: {x1, y1, x2, y2, x3, y3, x4, y4}, data: stringResult });
     };
   }
 
@@ -305,31 +336,70 @@ export class PskBarcodeScanner {
     reader.readAsDataURL(file);
   }
 
-
   /**
    * this function is taking a snapshot from the video and sending a task to the decoder
    */
   scanBarcodeFromCamera() {
-    // let vid = this.element.querySelector("#video");
-    let barcodeCanvas = document.createElement("canvas");
-    //[x,y, width, height]
-    let crpOpt = this.overlay.getCropOptions();
-    barcodeCanvas.width = crpOpt[2];
-    barcodeCanvas.height = crpOpt[3];
-    let barcodeContext = barcodeCanvas.getContext('2d');
-    //let imageWidth = vid['videoWidth'], imageHeight = vid['videoHeight'];
+    const container = this.element.querySelector('#scanner_container');
 
-    //barcodeContext.drawImage(this.videoElement, 0, 0, imageWidth, imageHeight);
-    barcodeContext.drawImage(this.videoElement, crpOpt[0],crpOpt[1],crpOpt[2],crpOpt[3],0,0,crpOpt[2],crpOpt[3]);
-    // read barcode
-    //let imageData = barcodeContext.getImageData(0, 0, imageWidth, imageHeight);
-    let imageData = barcodeContext.getImageData(0,0,crpOpt[2],crpOpt[3]);
-    let idd = imageData.data;
-    let image = this.ZXing._resize(crpOpt[2], crpOpt[3]);
-    this.decodeImage(image, idd,()=>{
+    const dimensions = {
+      // original video dimensions
+      original: {
+        width: this.videoElement.videoWidth,
+        height: this.videoElement.videoHeight
+      },
+      // resized dimensions of video (scaled for view)
+      video: {
+        width: this.videoElement.offsetWidth,
+        height: this.videoElement.offsetHeight
+      },
+      // visible part from the original video
+      image: {
+        width: container.offsetWidth,
+        height: container.offsetHeight
+      }
+    }
+
+    const ratio = dimensions.original.width / dimensions.video.width;
+    if (ratio) {
+      dimensions.image = {
+        width: ratio * container.offsetWidth,
+        height: ratio * container.offsetHeight
+      }
+    }
+
+    const barcodeCanvas = document.createElement('canvas');
+    const barcodeContext = barcodeCanvas.getContext('2d');
+
+    if (!this.disableFrame) {
+      let { frame: frameSize } = this.overlay.getDimensions(container);
+
+      if (ratio) {
+        frameSize *= ratio;
+      }
+
+      dimensions.image.width = frameSize;
+      dimensions.image.height = frameSize;
+    }
+
+    barcodeCanvas.width = dimensions.image.width;
+    barcodeCanvas.height = dimensions.image.height;
+
+    barcodeContext.drawImage(
+      this.videoElement,
+      (dimensions.original.width - dimensions.image.width) / 2,
+      (dimensions.original.height - dimensions.image.height) / 2,
+      dimensions.image.width, dimensions.image.height,
+      0, 0, dimensions.image.width, dimensions.image.height
+    );
+
+    const { data } = barcodeContext.getImageData(0,0, dimensions.image.width, dimensions.image.height);
+
+    const image = this.ZXing._resize(dimensions.image.width, dimensions.image.height);
+    this.decodeImage(image, data, () => {
       if (!this.componentIsDisconnected) {
-        setTimeout(()=>{
-          if(this.cameraIsOn){
+        setTimeout(() => {
+          if (this.cameraIsOn) {
             this.scanBarcodeFromCamera();
           }
         }, SCAN_TIMEOUT);
@@ -337,14 +407,13 @@ export class PskBarcodeScanner {
     });
   }
 
-
   private decodeImage(image, idd: Uint8ClampedArray, callback) {
     for (let i = 0, j = 0; i < idd.length; i += 4, j++) {
       this.ZXing.HEAPU8[image + j] = idd[i];
     }
     let err = this.ZXing._decode_any(this.decodePtr);
     if (err === -2) {
-      if (typeof callback === "function") {
+      if (typeof callback === 'function') {
         callback();
       }
     }
@@ -357,7 +426,7 @@ export class PskBarcodeScanner {
   /**
    * check if any camera is available before first render
    */
-  componentWillLoad():Promise<any>{
+  componentWillLoad(): Promise<any> {
     function detectWebcam(callback) {
       let md = navigator.mediaDevices;
       if (!md || !md.enumerateDevices) return callback(false);
@@ -377,82 +446,94 @@ export class PskBarcodeScanner {
   /**
    * after first render occurred, add the buttons events listeners if needed and initialize the ZXing library
    */
-  componentDidLoad(){
-    if(this.componentIsDisconnected){
-      return;
-    }
+  componentDidLoad() {
+    if (this.componentIsDisconnected) return;
 
     if (this.cameraIsAvailable === false) {
-      this.element.addEventListener("loaded-local-file", this.scanBarcodeFromUploadedFile.bind(this));
+      this.element.addEventListener('loaded-local-file', this.scanBarcodeFromUploadedFile.bind(this));
     } else {
       if (stringToBoolean(this.allowFileBrowsing)) {
-        this.element.addEventListener("loaded-local-file", this.scanBarcodeFromUploadedFile.bind(this));
-        this.element.addEventListener("use-camera", this.startCameraUsage.bind(this));
+        this.element.addEventListener('loaded-local-file', this.scanBarcodeFromUploadedFile.bind(this));
+        this.element.addEventListener('use-camera', this.startCameraUsage.bind(this));
       }
     }
 
-    this.initializeZXing( this.startCameraUsage.bind(this),(result)=>{
+    this.initializeZXing(this.startCameraUsage.bind(this), result => {
       this.modelHandler.updateModel('data', result.data);
       audioData.play();
       this.overlay.drawOverlay(result.points);
       if (!this.componentIsDisconnected) {
-        setTimeout(()=>{
-          if(this.cameraIsOn){
-            this.scanBarcodeFromCamera();
-          }
+        setTimeout(() => {
+          if (this.cameraIsOn) this.scanBarcodeFromCamera();
         }, 1000);
       }
     });
   }
 
-  disconnectedCallback(){
+  disconnectedCallback() {
     this.componentIsDisconnected = true;
     this.stopTracks();
   }
 
   render() {
-    if(this.componentIsDisconnected){
-      return  null;
-    }
+    if (this.componentIsDisconnected) return null;
     let fileBrowsingIsAllowed = stringToBoolean(this.allowFileBrowsing);
 
-    const layout = {
-      display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center',
-      padding: '1em', margin: '0.25em 0'
-    };
+    const style = {
+      barcodeWrapper: {
+        display: 'grid', gridTemplateRows: '1fr auto',
+        width: '100%', height: '100%'
+      },
+      videoWrapper: {
+        position: 'relative',
+        display: 'grid', gridTemplateRows: '1fr',
+        overflow: 'hidden',
+        minHeight: '300px'
+      },
+      video: {
+        position: 'absolute',
+        left: '50%', transform: 'translateX(-50%)',
+        height: '100%'
+      },
+      controls: {
+        padding: '1em', margin: '0.25em 0',
+        display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center'
+      },
+      select: {
+        padding: '5px',
+        background: 'transparent', border: '0'
+      }
+    }
 
-    return (
-      [
-        <script async src="/cardinal/libs/zxing.js"/>,
-        <div title={this.title}>
-          { this.cameraIsAvailable === false
-            ? (
-              <psk-highlight title="No camera detected" type-of-highlight="warning">
-                <p>You can still use your device files to check for barcodes!</p>
-              </psk-highlight>
-            )
-            : [
-              <div style={{position: "relative"}} id="scanner_container">
-                <video muted autoplay id="video" playsinline={true} style={{width: "100%"}}/>
-              </div>,
-              <div style={layout}>
-                <label htmlFor="videoSource" style={{margin: '0'}}>Video source</label>
-                <div class="select" id="camera-source">
-                  <select id="videoSource" style={{background: 'transparent', padding: '5px', border: '0'}} />
-                </div>
+    return [
+      <script async src="/cardinal/libs/zxing.js"/>,
+      <div title={this.title} style={style.barcodeWrapper}>
+        { this.cameraIsAvailable === false
+          ? (
+            <psk-highlight title="No camera detected" type-of-highlight="warning">
+              <p>You can still use your device files to check for barcodes!</p>
+            </psk-highlight>
+          )
+          : [
+            <div id="scanner_container" style={style.videoWrapper}>
+              <video id="video" muted autoplay playsinline={true} style={style.video}/>
+            </div>,
+            <div style={style.controls}>
+              <label htmlFor="videoSource" style={{margin: '0'}}>Video source: </label>
+              <div class="select" id="camera-source">
+                <select id="videoSource" style={style.select} />
               </div>
-            ]
-          }
-          { fileBrowsingIsAllowed || this.cameraIsAvailable === false
-            ? [
-              <psk-files-chooser accept="image/*" label="Load a file from device" event-name="loaded-local-file"/>,
-              <psk-button event-name="use-camera" label="Use camera" style={{display: "none"}} id="use-camera-btn"/>
-            ]
-            : null
-          }
-        </div>
-      ]
-    );
+            </div>
+          ]
+        }
+        { fileBrowsingIsAllowed || this.cameraIsAvailable === false
+          ? [
+            <psk-files-chooser accept="image/*" label="Load a file from device" event-name="loaded-local-file"/>,
+            <psk-button event-name="use-camera" label="Use camera" style={{display: "none"}} id="use-camera-btn"/>
+          ]
+          : null
+        }
+      </div>
+    ];
   }
 }
-
