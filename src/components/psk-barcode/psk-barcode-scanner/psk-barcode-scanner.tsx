@@ -230,7 +230,7 @@ export class PskBarcodeScanner {
           let option = document.createElement('option');
           option.value = deviceInfo.deviceId;
           if (deviceInfo.kind === 'videoinput') {
-            option.text = deviceInfo.label || `Camera $(videoSelect.length + 1)`;
+            option.text = deviceInfo.label || `Camera ${videoSelect.length + 1}`;
             videoSelect.appendChild(option);
           }
         }
