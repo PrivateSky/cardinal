@@ -70,13 +70,13 @@ export class PskBarcodeScanner {
     }
   }
 
-  handleCameraError(error) {
+  handleCameraError = (error) => {
     console.log('Error: ', error);
     this.cameraIsAvailable = false;
     this.stopCameraUsage();
   }
 
-  changeCamera() {
+  changeCamera = () => {
     this.stopTracks()
     this.getStream();
   }
@@ -160,7 +160,7 @@ export class PskBarcodeScanner {
   /**
    * select the stream and get barcode from the stream
    */
-  getStream() {
+  getStream = () => {
     let camerasSelectList = this.element.querySelector('select#videoSource');
     // let scannerContainer = this.element.querySelector('#scanner_container');
 
