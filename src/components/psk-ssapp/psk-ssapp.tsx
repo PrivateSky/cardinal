@@ -90,7 +90,7 @@ export class PskSelfSovereignApp {
   @Watch("landingPath")
 	loadApp(callback?) {
 		if (this.__hasRelevantMatchParams()) {
-			this.seed = atob(this.match.params.keySSI);
+			this.seed = this.match.params.keySSI;
 		}
 
 		if (this.componentInitialized) {
