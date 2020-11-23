@@ -162,7 +162,7 @@ export class PskBarcodeScanner {
    */
   getStream = () => {
     let camerasSelectList = this.element.querySelector('select#videoSource');
-    // let scannerContainer = this.element.querySelector('#scanner_container');
+    let scannerContainer = this.element.querySelector('#scanner_container');
 
     let alternativeCameras = Array.from(camerasSelectList.querySelectorAll('option')).map((option: any) => {
       return option.value;
@@ -176,8 +176,8 @@ export class PskBarcodeScanner {
 
     if (camerasSelectList.value) {
       constraints['video'] = {
-        // width: { ideal: scannerContainer.offsetWidth },
-        // height: { ideal: scannerContainer.offsetHeight },
+        width: { ideal: scannerContainer.offsetWidth },
+        height: { ideal: scannerContainer.offsetHeight },
         facingMode: {
           // this is the back camera
           ideal: 'environment'
@@ -224,8 +224,11 @@ export class PskBarcodeScanner {
     let scannerContainer = this.element.querySelector('#scanner_container');
 
     let gotDevices = (deviceInfos) => {
+      // TODO: log devices information
+      console.log('[gotDevices] deviceInfos', deviceInfos);
+
       if (deviceInfos.length) {
-        console.log('[gotDevices] deviceInfos.length is != 0', deviceInfos);
+
         for (let i = deviceInfos.length - 1; i >= 0; --i) {
           let deviceInfo = deviceInfos[i];
           let option = document.createElement('option');
@@ -242,7 +245,6 @@ export class PskBarcodeScanner {
           this.drawOverlays(scannerContainer);
         }
       } else {
-        console.log('[gotDevices] deviceInfos.length is 0', deviceInfos);
         // this.stopCameraUsage();
       }
     }
@@ -397,6 +399,19 @@ export class PskBarcodeScanner {
 
     const { data } = barcodeContext.getImageData(0,0, dimensions.image.width, dimensions.image.height);
 
+    // TODO: log image extracted from video
+    // const scale = 0.35;
+    // const url = barcodeCanvas.toDataURL('image/png')
+    // const output = [
+    //   'padding: ' + barcodeCanvas.height * scale + 'px ' + barcodeCanvas.width * scale + 'px;',
+    //   'background: url('+ url +') no-repeat;',
+    //   'background-size: contain;'
+    // ].join(' ');
+    //
+    // console.log('dimensions', dimensions);
+    // console.log('ratio', ratio);
+    // console.log('%c ', output);
+
     const image = this.ZXing._resize(dimensions.image.width, dimensions.image.height);
     this.decodeImage(image, data, () => {
       if (!this.componentIsDisconnected) {
@@ -506,6 +521,9 @@ export class PskBarcodeScanner {
         background: 'transparent', border: '0'
       }
     }
+
+    // TODO: zxing testing
+    // (window as any).cardinalBase}/cardinal/libs/zxing.js
 
     return [
       <script async src="/cardinal/libs/zxing.js"/>,
