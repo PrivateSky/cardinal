@@ -10,7 +10,7 @@ import audioData from './audioData.js';
 import { stringToBoolean } from '../../../utils';
 import BarcodeUtilFunctions from './barcode-util-functions.js';
 
-const SCAN_TIMEOUT = 100;
+const SCAN_TIMEOUT = 300;
 
 @Component({
   tag: 'psk-barcode-scanner'
@@ -72,8 +72,8 @@ export class PskBarcodeScanner {
 
   handleCameraError = (error) => {
     console.log('Error: ', error);
-    this.cameraIsAvailable = false;
-    this.stopCameraUsage();
+    // this.cameraIsAvailable = false;
+    // this.stopCameraUsage();
   }
 
   changeCamera = () => {
@@ -225,6 +225,7 @@ export class PskBarcodeScanner {
 
     let gotDevices = (deviceInfos) => {
       if (deviceInfos.length) {
+        console.log('[gotDevices] deviceInfos.length is != 0', deviceInfos);
         for (let i = deviceInfos.length - 1; i >= 0; --i) {
           let deviceInfo = deviceInfos[i];
           let option = document.createElement('option');
@@ -241,7 +242,8 @@ export class PskBarcodeScanner {
           this.drawOverlays(scannerContainer);
         }
       } else {
-        this.stopCameraUsage();
+        console.log('[gotDevices] deviceInfos.length is 0', deviceInfos);
+        // this.stopCameraUsage();
       }
     }
 
