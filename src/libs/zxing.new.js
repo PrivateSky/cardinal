@@ -10245,7 +10245,7 @@
       }
       catch (e) {
         // OK
-        console.log(e);
+        // console.log(e);
       }
       this.pairs.length = 0;
       this.startFromEven = true;

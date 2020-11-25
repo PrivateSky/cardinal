@@ -59,6 +59,9 @@ export class PskBarcodeScanner {
 
   private overlay = null;
   private codeReader = null;
+  private scanDone = false;
+  private lastDeviceId = 'abc';
+  private componentIsDisconnected = false;
 
   constructor() {
     window.addEventListener('resize', _ => {
@@ -91,13 +94,13 @@ export class PskBarcodeScanner {
     const videoElement = this.element.querySelector('#video');
     // let scannerContainer = this.element.querySelector('#scanner-container');
 
-    let log = console.log;
-    console.log = (...args) => {
-      if (args.length != 0 && args[0] instanceof this.ZXing.NotFoundException) {
-        return;
-      }
-      log(...args);
-    }
+    // let log = console.log;
+    // console.log = (...args) => {
+    //   if (args.length != 0 && args[0] instanceof this.ZXing.NotFoundException) {
+    //     return;
+    //   }
+    //   log(...args);
+    // }
 
     const constraints = {
       video: {
@@ -115,29 +118,39 @@ export class PskBarcodeScanner {
     this.cleanupOverlays();
     this.drawOverlays();
 
-    this.codeReader.reset()
-    this.codeReader.decodeFromConstraints(constraints, videoElement, (result, err) => {
-      if (result) {
-        console.log('result', result);
-        if (this.modelHandler) {
-          this.overlay.drawOverlay(result.resultPoints);
-          audioData.play();
-          this.modelHandler.updateModel('data', result.text);
+    if (!this.scanDone) {
+      this.codeReader.reset()
+      this.codeReader.decodeFromConstraints(constraints, videoElement, (result, err) => {
+        if (this.scanDone) {
+          setTimeout(() => {
+            this.codeReader.stopContinuousDecode();
+            this.codeReader._stopContinuousDecode = true;
+            this.codeReader._stopAsyncDecode = true;
+          }, 10);
+          return;
         }
-      }
-      if (err && !(err instanceof this.ZXing.NotFoundException)) {
-        console.error(err);
-      }
-    });
-  }
 
-  cameraChanged(deviceId) {
-    this.activeDeviceId = deviceId;
-    // this.startCamera(this.activeDeviceId);
+        if (result && !this.scanDone) {
+          console.log('result', result);
+          if (this.modelHandler) {
+            this.overlay.drawOverlay(result.resultPoints);
+            audioData.play();
+            this.modelHandler.updateModel('data', result.text);
+            this.codeReader.reset();
+            this.scanDone = true;
+            // console.log = log;
+          }
+        }
+        if (err && !(err instanceof this.ZXing.NotFoundException)) {
+          console.error(err);
+        }
+      });
+    }
   }
 
   switchCamera() {
     let devices = [undefined];
+
     for (const device of this.devices) {
       devices.push(device.deviceId);
     }
@@ -149,13 +162,14 @@ export class PskBarcodeScanner {
     currentIndex++;
 
     this.activeDeviceId = devices[currentIndex];
+    this.scanDone = false;
   }
 
   async componentWillLoad() {
     let tick = () => {
-      if (window['ZXing']) {
+      if (window['ZXing'] && !this.ZXing && !this.codeReader) {
         this.ZXing = window['ZXing'];
-        this.codeReader = new this.ZXing.BrowserMultiFormatReader();
+        this.codeReader = new this.ZXing.BrowserMultiFormatReader(null, 2000);
       } else {
         setTimeout(tick, SCAN_TIMEOUT);
       }
@@ -182,15 +196,20 @@ export class PskBarcodeScanner {
   }
 
   async componentDidRender() {
-    if (this.cameraIsAvailable) {
+    if (this.cameraIsAvailable && !this.componentIsDisconnected && this.activeDeviceId !== this.lastDeviceId) {
       this.startCamera(this.activeDeviceId);
+      this.lastDeviceId = this.activeDeviceId;
     }
+  }
+
+  disconnectedCallback() {
+    this.componentIsDisconnected = true;
   }
 
   render() {
     const style = {
       barcodeWrapper: {
-        display: 'grid', gridTemplateRows: '1fr auto',
+        display: 'grid', gridTemplateRows: '1fr',
         width: '100%', height: '100%'
       },
       videoWrapper: {
@@ -205,32 +224,20 @@ export class PskBarcodeScanner {
         height: '100%', width: '100%',
         objectFit: 'cover'
       },
-      controls: {
-        padding: '1em', margin: '0.25em 0',
-        display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center'
-      },
-      select: {
-        padding: '5px',
-        background: 'transparent', border: '0'
-      },
       hidden: {
         display: 'none'
+      },
+      button: {
+        position: 'absolute', zIndex: '1',
+        padding: '0.2em 0.7em',
+        bottom: '1em', left: '50%', transform: 'translateX(-50%)',
+        color: '#FFFFFF', background: 'transparent',
+        borderRadius: '2px', border: '2px solid rgba(255, 255, 255, 0.75)'
       }
     }
 
-    // const selectCamera = (
-    //   <select style={style.select} onChange={(e: any) => this.cameraChanged(e.target.value)}>
-    //     <option value="no-camera">Select camera</option>
-    //     {
-    //       this.devices.map(device => (
-    //         <option value={device.deviceId}>{device.label}</option>
-    //       ))
-    //     }
-    //   </select>
-    // );
-
     return [
-      <script async src={`${(window as any).cardinalBase || ''}/cardinal/libs/zxing.new.js`}/>,
+      <script async src={window['cardinalBase'] || `/cardinal/libs/zxing.new.js`}/>,
       <div title={this.title} style={style.barcodeWrapper}>
         {
           this.cameraIsAvailable === false
@@ -239,20 +246,13 @@ export class PskBarcodeScanner {
               <p>You can still use your device files to check for barcodes!</p>
             </psk-highlight>
           )
-          : [
+          : (
             <div id="scanner-container" style={style.videoWrapper}>
               <input type="file" accept="video/*" capture="camera" style={style.hidden}/>
               <video id="video" muted autoplay playsinline={true} style={style.video}/>
-            </div>,
-            <div style={style.controls}>
-              <button onClick={_ => this.switchCamera()}>Change camera</button>
-
-              {/*<label htmlFor="video-source" style={{margin: '0'}}>Video source: </label>*/}
-              {/*<div id="camera-source" class="select" >*/}
-              {/*  {selectCamera}*/}
-              {/*</div>*/}
+              <button onClick={_ => this.switchCamera()} style={style.button}>Change camera</button>
             </div>
-          ]
+            )
         }
         { this.cameraIsAvailable === false
           ? [
