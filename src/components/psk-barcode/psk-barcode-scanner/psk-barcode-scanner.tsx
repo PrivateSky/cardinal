@@ -237,29 +237,16 @@ export class PskBarcodeScanner {
     }
 
     return [
-      <script async src={window['cardinalBase'] || `/cardinal/libs/zxing.new.js`}/>,
+      <script async src={(window['cardinalBase'] || '') + '/cardinal/libs/zxing.new.js'}/>,
       <div title={this.title} style={style.barcodeWrapper}>
         {
-          this.cameraIsAvailable === false
-          ? (
-            <psk-highlight title="No camera detected" type-of-highlight="warning">
-              <p>You can still use your device files to check for barcodes!</p>
-            </psk-highlight>
-          )
-          : (
+          this.cameraIsAvailable === true ? (
             <div id="scanner-container" style={style.videoWrapper}>
               <input type="file" accept="video/*" capture="camera" style={style.hidden}/>
               <video id="video" muted autoplay playsinline={true} style={style.video}/>
               <button onClick={_ => this.switchCamera()} style={style.button}>Change camera</button>
             </div>
-            )
-        }
-        { this.cameraIsAvailable === false
-          ? [
-            <psk-files-chooser accept="image/*" label="Load a file from device" event-name="loaded-local-file"/>,
-            <psk-button id="use-camera-btn" label="Use camera" style={style.hidden} event-name="use-camera"/>
-          ]
-          : null
+          ) : null
         }
       </div>
     ];
