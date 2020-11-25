@@ -1,5 +1,5 @@
-import BarcodeUtilFunctions from './barcode-util-functions';
 import CanvasOverlay from './CanvasOverlay';
+
 const ANGLE_WIDTH = 50;
 
 export default class VideoOverlay extends CanvasOverlay {
@@ -23,27 +23,31 @@ export default class VideoOverlay extends CanvasOverlay {
   }
 
   removeOverlays() {
-    this.scannerContainer.removeChild(this.lensCanvas)
+    this.scannerContainer.removeChild(this.lensCanvas);
     this.scannerContainer.removeChild(this.overlayCanvas);
   }
 
   drawOverlay(points) {
-    let { x1, y1, x2, y2, x3, y3, x4, y4 } = points;
-    let paddings = [this.cropOptions[0], this.cropOptions[1]];
+    let x1 = points[0].x;
+    let y1 = points[0].y;
+
+    let x2 = points[1].x;
+    let y2 = points[1].y;
+
+    let x3 = points[2].x;
+    let y3 = points[2].y;
+
+    let x4 = points[3].x;
+    let y4 = points[3].y;
+
     let isLine = x3 + y3 + x4 + y4 === 0;
-
-    x1 += paddings[0];
-    x2 += paddings[0];
-    x3 += paddings[0];
-    x4 += paddings[0];
-
-    y1 += paddings[1];
-    y2 += paddings[1];
-    y3 += paddings[1];
-    y4 += paddings[1];
 
     this.overlayCanvas.width = this.dimensions.width;
     this.overlayCanvas.height = this.dimensions.height;
+
+    let xPadding = this.cropOptions[0];
+    let yPadding = this.cropOptions[1];
+    let frameWidth = this.cropOptions[2];
 
     if (this.overlayCanvas.getContext) {
       let ctx = this.overlayCanvas.getContext('2d');
@@ -58,22 +62,15 @@ export default class VideoOverlay extends CanvasOverlay {
         ctx.lineTo(x1, y1);
         ctx.lineTo(x2, y2);
       } else {
-        let points = [[x1, y1], [x2, y2], [x3, y3], [x4, y4]];
-        BarcodeUtilFunctions.polySort(points);
-        ctx.moveTo(points[0][0], points[0][1]);
-        ctx.lineTo(points[1][0], points[1][1]);
-        ctx.lineTo(points[2][0], points[2][1]);
-        ctx.lineTo(points[3][0], points[3][1]);
+        const gap = 60;
+        const size = frameWidth - 2 * gap;
+        ctx.rect(xPadding + gap, yPadding + gap, size, size);
       }
 
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
       ctx.strokeStyle = '#48d960FF'
-
-      let xPadding = this.cropOptions[0];
-      let yPadding = this.cropOptions[1];
-      let frameWidth = this.cropOptions[2];
 
       this.addLensCorners(ctx, xPadding, yPadding, frameWidth, ANGLE_WIDTH);
 
