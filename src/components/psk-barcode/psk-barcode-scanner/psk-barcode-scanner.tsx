@@ -89,7 +89,7 @@ export class PskBarcodeScanner {
 
   startCamera(deviceId) {
     const videoElement = this.element.querySelector('#video');
-    let scannerContainer = this.element.querySelector('#scanner-container');
+    // let scannerContainer = this.element.querySelector('#scanner-container');
 
     let log = console.log;
     console.log = (...args) => {
@@ -102,8 +102,8 @@ export class PskBarcodeScanner {
     const constraints = {
       video: {
         facingMode: 'environment',
-        width: { ideal: scannerContainer.offsetWidth },
-        height: { ideal: scannerContainer.offsetHeight },
+        // width: { ideal: scannerContainer.offsetWidth },
+        // height: { ideal: scannerContainer.offsetHeight },
       }
     }
 
@@ -134,6 +134,21 @@ export class PskBarcodeScanner {
   cameraChanged(deviceId) {
     this.activeDeviceId = deviceId;
     // this.startCamera(this.activeDeviceId);
+  }
+
+  switchCamera() {
+    let devices = [undefined];
+    for (const device of this.devices) {
+      devices.push(device.deviceId);
+    }
+
+    let currentIndex = devices.indexOf(this.activeDeviceId);
+    if (currentIndex === devices.length - 1) {
+      currentIndex = -1;
+    }
+    currentIndex++;
+
+    this.activeDeviceId = devices[currentIndex];
   }
 
   async componentWillLoad() {
@@ -185,9 +200,10 @@ export class PskBarcodeScanner {
         minHeight: '300px'
       },
       video: {
-        position: 'absolute',
-        left: '50%', transform: 'translateX(-50%)',
-        height: '100%'
+        // position: 'absolute',
+        // left: '50%', transform: 'translateX(-50%)',
+        height: '100%', width: '100%',
+        objectFit: 'cover'
       },
       controls: {
         padding: '1em', margin: '0.25em 0',
@@ -202,16 +218,16 @@ export class PskBarcodeScanner {
       }
     }
 
-    const selectCamera = (
-      <select style={style.select} onChange={(e: any) => this.cameraChanged(e.target.value)}>
-        <option value="no-camera">Select camera</option>
-        {
-          this.devices.map(device => (
-            <option value={device.deviceId}>{device.label}</option>
-          ))
-        }
-      </select>
-    );
+    // const selectCamera = (
+    //   <select style={style.select} onChange={(e: any) => this.cameraChanged(e.target.value)}>
+    //     <option value="no-camera">Select camera</option>
+    //     {
+    //       this.devices.map(device => (
+    //         <option value={device.deviceId}>{device.label}</option>
+    //       ))
+    //     }
+    //   </select>
+    // );
 
     return [
       <script async src={`${(window as any).cardinalBase || ''}/cardinal/libs/zxing.new.js`}/>,
@@ -229,10 +245,12 @@ export class PskBarcodeScanner {
               <video id="video" muted autoplay playsinline={true} style={style.video}/>
             </div>,
             <div style={style.controls}>
-              <label htmlFor="video-source" style={{margin: '0'}}>Video source: </label>
-              <div id="camera-source" class="select" >
-                {selectCamera}
-              </div>
+              <button onClick={_ => this.switchCamera()}>Change camera</button>
+
+              {/*<label htmlFor="video-source" style={{margin: '0'}}>Video source: </label>*/}
+              {/*<div id="camera-source" class="select" >*/}
+              {/*  {selectCamera}*/}
+              {/*</div>*/}
             </div>
           ]
         }
