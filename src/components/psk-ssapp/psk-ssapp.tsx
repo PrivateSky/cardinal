@@ -39,10 +39,18 @@ export class PskSelfSovereignApp {
 	})
 	@Prop() landingPath: string;
 
+  @TableOfContentProperty({
+    isMandatory: false,
+    description: `This property represents the query params of the Iframe.`,
+    propertyType: 'string'
+  })
+  @Prop() params: string;
+
 	@Prop() history: RouterHistory;
 	@Prop() match: MatchResults;
 
 	@State() digestKeySsiHex;
+	@State() parsedParams;
 	@Element() element;
 
 	private eventHandler;
@@ -57,7 +65,7 @@ export class PskSelfSovereignApp {
 	}
 
 	componentShouldUpdate(newValue, oldValue, changedState) {
-		if (newValue !== oldValue && changedState === "digestKeySsiHex") {
+		if (newValue !== oldValue && (changedState === "digestKeySsiHex" || changedState === "parsedParams")) {
 			window.document.removeEventListener(oldValue, this.eventHandler);
 			window.document.addEventListener(newValue, this.eventHandler);
 			return true;
@@ -82,10 +90,12 @@ export class PskSelfSovereignApp {
 
 		this.eventHandler = this.__ssappEventHandler.bind(this);
 		window.document.addEventListener(this.digestKeySsiHex, this.eventHandler);
+		window.document.addEventListener(this.parsedParams, this.eventHandler);
 		NavigatinTrackerService.getInstance().listenForSSAppHistoryChanges();
 	}
 
 	@Watch("seed")
+	@Watch("params")
 	@Watch("match")
   @Watch("landingPath")
 	loadApp(callback?) {
@@ -99,11 +109,14 @@ export class PskSelfSovereignApp {
 			if (typeof callback === "function") {
 				callback();
 			}
+
+			if (this.params != null && this.params != undefined) {
+			  this.parsedParams = JSON.parse(this.params);
+      }
 		}
 	};
 
 	render() {
-
 		let basePath;
 		let parentWindow = window.parent;
 		let currentWindow = window;
@@ -124,7 +137,14 @@ export class PskSelfSovereignApp {
 				basePath += '/';
 			}
 
-			const iframeSrc = basePath + "iframe/" + this.digestKeySsiHex;
+			let queryParams = "?";
+			if (this.parsedParams) {
+        queryParams += Object.keys(this.parsedParams)
+          .map((key) => key + "=" + this.parsedParams[key])
+          .join('&');
+      }
+
+			const iframeSrc = basePath + "iframe/" + this.digestKeySsiHex + (queryParams.length > 1 ? queryParams : "");
 			return (
 				<iframe
 					landing-page={this.landingPath}
