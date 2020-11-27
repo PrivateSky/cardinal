@@ -213,8 +213,8 @@ export class PskSelfSovereignApp {
 
 	__digestMessage(message) {
 		// @ts-ignore
-		const PskCrypto = require("pskcrypto");
-		const hexDigest = PskCrypto.pskHash(message, "hex");
-		return hexDigest;
+		const crypto = require("opendsu").loadApi("crypto");
+		const hash = crypto.sha256(message);
+		return hash;
 	}
 }
