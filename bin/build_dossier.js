@@ -1,18 +1,11 @@
 const DOSSIER_SEED_FILE_PATH = "./seed";
-const BRICK_STORAGE_ENDPOINT = process.env.SSAPPS_FAVORITE_EDFS_ENDPOINT || "http://127.0.0.1:8080";
 const DEFAULT_DOMAIN = "default";
 
-require("./../../privatesky/psknode/bundles/csbBoot.js");
 require("./../../privatesky/psknode/bundles/openDSU.js");
 const fs = require("fs");
 const openDSU = require("opendsu");
-const bdns = openDSU.loadApi("bdns");
 const keyssi = openDSU.loadApi("keyssi");
 const resolver = openDSU.loadApi("resolver");
-bdns.addRawInfo(DEFAULT_DOMAIN, {
-  brickStorages: [BRICK_STORAGE_ENDPOINT],
-  anchoringServices: [BRICK_STORAGE_ENDPOINT]
-})
 
 function storeKeySSI(seed_path, keySSI, callback) {
   fs.writeFile(seed_path, keySSI, (err) => {
