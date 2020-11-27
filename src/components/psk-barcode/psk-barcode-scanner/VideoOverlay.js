@@ -28,19 +28,17 @@ export default class VideoOverlay extends CanvasOverlay {
   }
 
   drawOverlay(points) {
-    let x1 = points[0].x;
-    let y1 = points[0].y;
+    let x1, y1, x2, y2;
 
-    let x2 = points[1].x;
-    let y2 = points[1].y;
+    if (points.length >= 2) {
+      x1 = points[0].x;
+      y1 = points[0].y;
 
-    let x3 = points[2].x;
-    let y3 = points[2].y;
+      x2 = points[1].x;
+      y2 = points[1].y;
+    }
 
-    let x4 = points[3].x;
-    let y4 = points[3].y;
-
-    let isLine = x3 + y3 + x4 + y4 === 0;
+    let isLine = x1 + y1 + x2 + y2 === 0;
 
     this.overlayCanvas.width = this.dimensions.width;
     this.overlayCanvas.height = this.dimensions.height;

@@ -7,7 +7,9 @@ import { TableOfContentProperty } from '../../../decorators';
 import VideoOverlay from './VideoOverlay.js';
 import audioData from './audioData.js';
 
-const SCAN_TIMEOUT = 300;
+const INTERVAL_ZXING_LOADED = 300;
+const INTERVAL_BETWEEN_SCANS = 2000;
+const DELAY_AFTER_RESULT = 500;
 
 @Component({
   tag: 'psk-barcode-scanner'
@@ -53,21 +55,20 @@ export class PskBarcodeScanner {
   // @Prop() disableFrame = false;
 
   @State() ZXing = null;
-  @State() devices = [];
   @State() activeDeviceId: string | null = null;
   @State() cameraIsAvailable = false;
 
-  private overlay = null;
   private codeReader = null;
+  private devices = [];
+  private overlay = null;
   private scanDone = false;
-  private lastDeviceId = 'abc';
   private componentIsDisconnected = false;
 
   constructor() {
     window.addEventListener('resize', _ => {
       this.cleanupOverlays();
       this.drawOverlays();
-      // this.startCamera(this.activeDeviceId);
+      // this.startScanning(this.activeDeviceId);
     });
   }
 
@@ -77,7 +78,7 @@ export class PskBarcodeScanner {
     }
 
     const videoElement = this.element.querySelector('#video');
-    let scannerContainer = this.element.querySelector('#scanner-container');
+    const scannerContainer = this.element.querySelector('#scanner-container');
 
     this.overlay = new VideoOverlay(scannerContainer, videoElement);
     this.overlay.createOverlaysCanvases('lensCanvas', 'overlayCanvas');
@@ -90,9 +91,8 @@ export class PskBarcodeScanner {
     }
   }
 
-  startCamera(deviceId) {
+  startScanning(deviceId) {
     const videoElement = this.element.querySelector('#video');
-    // let scannerContainer = this.element.querySelector('#scanner-container');
 
     // let log = console.log;
     // console.log = (...args) => {
@@ -104,9 +104,7 @@ export class PskBarcodeScanner {
 
     const constraints = {
       video: {
-        facingMode: 'environment',
-        // width: { ideal: scannerContainer.offsetWidth },
-        // height: { ideal: scannerContainer.offsetHeight },
+        facingMode: 'environment'
       }
     }
 
@@ -115,30 +113,26 @@ export class PskBarcodeScanner {
       constraints.video['deviceId'] = { exact: deviceId };
     }
 
-    this.cleanupOverlays();
-    this.drawOverlays();
-
     if (!this.scanDone) {
-      this.codeReader.reset()
-      this.codeReader.decodeFromConstraints(constraints, videoElement, (result, err) => {
-        if (this.scanDone) {
-          setTimeout(() => {
-            this.codeReader.stopContinuousDecode();
-            this.codeReader._stopContinuousDecode = true;
-            this.codeReader._stopAsyncDecode = true;
-          }, 10);
-          return;
-        }
+      this.cleanupOverlays();
+      this.drawOverlays();
 
+      this.codeReader.reset();
+      this.codeReader.decodeFromConstraints(constraints, videoElement, (result, err) => {
         if (result && !this.scanDone) {
           console.log('result', result);
+
           if (this.modelHandler) {
-            this.overlay.drawOverlay(result.resultPoints);
             audioData.play();
+            this.overlay.drawOverlay(result.resultPoints);
             this.modelHandler.updateModel('data', result.text);
-            this.codeReader.reset();
             this.scanDone = true;
             // console.log = log;
+
+            setTimeout(_ => {
+              this.codeReader.reset();
+              this.overlay.removeOverlays();
+            }, DELAY_AFTER_RESULT);
           }
         }
         if (err && !(err instanceof this.ZXing.NotFoundException)) {
@@ -169,13 +163,13 @@ export class PskBarcodeScanner {
     let tick = () => {
       if (window['ZXing'] && !this.ZXing && !this.codeReader) {
         this.ZXing = window['ZXing'];
-        this.codeReader = new this.ZXing.BrowserMultiFormatReader(null, 2000);
+        this.codeReader = new this.ZXing.BrowserMultiFormatReader(null, INTERVAL_BETWEEN_SCANS);
       } else {
-        setTimeout(tick, SCAN_TIMEOUT);
+        setTimeout(tick, INTERVAL_ZXING_LOADED);
       }
     };
 
-    setTimeout(tick, SCAN_TIMEOUT);
+    tick();
   }
 
   async componentWillRender() {
@@ -187,7 +181,6 @@ export class PskBarcodeScanner {
     // No devices yet
     if (this.devices.length === 0 || !this.activeDeviceId) {
       this.devices = await this.codeReader.listVideoInputDevices();
-      // console.log('devices', this.devices);
 
       if (this.devices.length > 0) {
         this.cameraIsAvailable = true;
@@ -196,14 +189,21 @@ export class PskBarcodeScanner {
   }
 
   async componentDidRender() {
-    if (this.cameraIsAvailable && !this.componentIsDisconnected && this.activeDeviceId !== this.lastDeviceId) {
-      this.startCamera(this.activeDeviceId);
-      this.lastDeviceId = this.activeDeviceId;
+    if (this.cameraIsAvailable && !this.componentIsDisconnected) {
+      this.startScanning(this.activeDeviceId);
     }
   }
 
-  disconnectedCallback() {
+  async connectedCallback() {
+    this.componentIsDisconnected = false;
+  }
+
+  async disconnectedCallback() {
     this.componentIsDisconnected = true;
+
+    if (this.codeReader) {
+      this.codeReader.reset();
+    }
   }
 
   render() {
@@ -219,8 +219,6 @@ export class PskBarcodeScanner {
         minHeight: '300px'
       },
       video: {
-        // position: 'absolute',
-        // left: '50%', transform: 'translateX(-50%)',
         height: '100%', width: '100%',
         objectFit: 'cover'
       },
@@ -229,18 +227,19 @@ export class PskBarcodeScanner {
       },
       button: {
         position: 'absolute', zIndex: '1',
-        padding: '0.2em 0.7em',
+        padding: '0.3em 0.6em',
         bottom: '1em', left: '50%', transform: 'translateX(-50%)',
         color: '#FFFFFF', background: 'transparent',
-        borderRadius: '2px', border: '2px solid rgba(255, 255, 255, 0.75)'
+        borderRadius: '2px', border: '2px solid rgba(255, 255, 255, 0.75)',
+        fontSize: '15px'
       }
     }
 
     return [
-      <script async src={(window['cardinalBase'] || '') + '/cardinal/libs/zxing.new.js'}/>,
+      <script async src={`${window['cardinalBase'] || ''}/cardinal/libs/zxing.new.js`}/>,
       <div title={this.title} style={style.barcodeWrapper}>
         {
-          this.cameraIsAvailable === true ? (
+          this.cameraIsAvailable === true && this.scanDone === false ? (
             <div id="scanner-container" style={style.videoWrapper}>
               <input type="file" accept="video/*" capture="camera" style={style.hidden}/>
               <video id="video" muted autoplay playsinline={true} style={style.video}/>
