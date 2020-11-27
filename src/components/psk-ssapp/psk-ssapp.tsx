@@ -111,7 +111,11 @@ export class PskSelfSovereignApp {
 			}
 
 			if (this.params != null && this.params != undefined) {
-			  this.parsedParams = JSON.parse(this.params);
+			  try{
+          this.parsedParams = JSON.parse(this.params);
+        }catch (e) {
+          console.log("Attribute called 'params' could not be parsed.")
+        }
       }
 		}
 	};
