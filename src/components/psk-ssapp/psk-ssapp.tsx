@@ -164,6 +164,24 @@ export class PskSelfSovereignApp {
 
 	}
 
+
+  ___sendLoadingProgress(progress?: any, status?: any) {
+    let currentWindow: any = window;
+    let parentWindow: any = currentWindow.parent;
+
+    while (currentWindow !== parentWindow) {
+        currentWindow = parentWindow;
+        parentWindow = currentWindow.parent;
+    }
+
+    parentWindow.document.dispatchEvent(new CustomEvent('ssapp:loading:progress', {
+        detail: {
+            progress,
+            status
+        }
+    }));
+  }
+
 	__onServiceWorkerMessageHandler: (e) => void;
 
 	__hasRelevantMatchParams() {
@@ -184,7 +202,13 @@ export class PskSelfSovereignApp {
 		}
 
 		if (data.status === 'completed') {
-			iframe.contentWindow.location.reload();
+      const signalFinishLoading = () => {
+        this.___sendLoadingProgress(100);
+        iframe.removeEventListener('load', signalFinishLoading);
+      };
+
+      iframe.addEventListener('load', signalFinishLoading);
+      iframe.contentWindow.location.reload();
 		}
 	}
 
@@ -213,8 +237,8 @@ export class PskSelfSovereignApp {
 
 	__digestMessage(message) {
 		// @ts-ignore
-		const PskCrypto = require("pskcrypto");
-		const hexDigest = PskCrypto.pskHash(message, "hex");
-		return hexDigest;
+		const crypto = require("opendsu").loadApi("crypto");
+		const hash = crypto.sha256(message);
+		return hash;
 	}
 }

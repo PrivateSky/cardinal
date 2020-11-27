@@ -2,7 +2,16 @@ export default class CanvasOverlay {
 
   constructor(scannerContainer) {
     this.scannerContainer = scannerContainer;
-    this.dimensions = this.getDimensions(this.scannerContainer);
+
+    if (!window.cardinal['barcodeScanner']) {
+      this.dimensions = this.getDimensions(this.scannerContainer);
+      window.cardinal.barcodeScanner = {
+        dimensions: this.dimensions
+      };
+    }
+    else {
+      this.dimensions = window.cardinal['barcodeScanner'].dimensions;
+    }
   }
 
   getDimensions(scannerContainer) {
