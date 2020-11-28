@@ -63,6 +63,7 @@ export class PskBarcodeScanner {
   private overlay = null;
   private scanDone = false;
   private componentIsDisconnected = false;
+  private status = "Camera detection in progress...";
 
   constructor() {
     window.addEventListener('resize', _ => {
@@ -127,6 +128,7 @@ export class PskBarcodeScanner {
             this.overlay.drawOverlay(result.resultPoints);
             this.modelHandler.updateModel('data', result.text);
             this.scanDone = true;
+            this.status = "Scan done.";
             // console.log = log;
 
             setTimeout(_ => {
@@ -184,6 +186,8 @@ export class PskBarcodeScanner {
 
       if (this.devices.length > 0) {
         this.cameraIsAvailable = true;
+      }else{
+        this.status = "No camera detected.";
       }
     }
   }
@@ -245,7 +249,7 @@ export class PskBarcodeScanner {
               <video id="video" muted autoplay playsinline={true} style={style.video}/>
               <button onClick={_ => this.switchCamera()} style={style.button}>Change camera</button>
             </div>
-          ) : null
+          ) : <div>{this.status}</div>
         }
       </div>
     ];
