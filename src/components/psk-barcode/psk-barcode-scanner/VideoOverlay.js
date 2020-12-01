@@ -23,8 +23,12 @@ export default class VideoOverlay extends CanvasOverlay {
   }
 
   removeOverlays() {
-    this.scannerContainer.removeChild(this.lensCanvas);
-    this.scannerContainer.removeChild(this.overlayCanvas);
+    try{
+      this.scannerContainer.removeChild(this.lensCanvas);
+      this.scannerContainer.removeChild(this.overlayCanvas);
+    }catch(err){
+      // we are not in dom any more
+    }
   }
 
   drawOverlay(points) {
