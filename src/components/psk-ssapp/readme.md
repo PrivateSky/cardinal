@@ -13,6 +13,7 @@
 | `history`     | --             |             | `RouterHistory` | `undefined` |
 | `landingPath` | `landing-path` |             | `string`        | `undefined` |
 | `match`       | --             |             | `MatchResults`  | `undefined` |
+| `params`      | `params`       |             | `string`        | `undefined` |
 | `seed`        | `key-ssi`      |             | `string`        | `null`      |
 
 
