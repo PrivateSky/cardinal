@@ -3,6 +3,7 @@ import { setMode } from '@stencil/core';
 declare global {
   interface Window {
     cardinal: {
+      path?: string;
       oldCustomTheme?: any;
       customTheme?: any;
       controllers?: any;
