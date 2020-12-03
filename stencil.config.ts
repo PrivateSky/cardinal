@@ -1,5 +1,5 @@
 import { Config } from '@stencil/core';
-import { remove_warnings } from './bin/helpers';
+import { removeWarnings } from './bin/helpers';
 
 export interface CardinalConfig extends Config {
   readonly useBootstrap: boolean;
@@ -9,7 +9,7 @@ export const config: CardinalConfig = {
   namespace: 'cardinal',
   globalScript: './src/globals/index.ts',
   plugins: [
-    remove_warnings()
+    removeWarnings()
   ],
   outputTargets: [
     {
