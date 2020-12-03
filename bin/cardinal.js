@@ -57,7 +57,7 @@ const cardinal = {
     build: (flags) => {
       const production = !flags.includes(FLAGS.DEVELOPMENT);
       return {
-        name: 'build-cardinal-custom-components',
+        name: 'build-cardinal-extended',
         actions: [
           {
             type: 'execute',
@@ -68,20 +68,20 @@ const cardinal = {
     },
 
     copy: (target, flags) => {
-      let src = '../dist';
+      let src = './dist';
 
-      if (!flags.includes(FLAGS.ONLY_MODULE)) {
-        src = path.join(src, 'cardinal-custom-components')
+      if (flags.includes(FLAGS.ONLY_MODULE)) {
+        src = path.join(src, 'cardinal')
       }
 
       return {
-        name: 'copy-cardinal-custom-components',
+        name: 'copy-cardinal-extended',
         actions: [
           {
             type: 'copy',
             src,
             target,
-            options: {'overwrite': true}
+            options: { 'overwrite': true }
           }
         ]
       }
