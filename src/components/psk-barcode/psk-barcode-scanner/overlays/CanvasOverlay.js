@@ -15,10 +15,11 @@ export default class CanvasOverlay {
   }
 
   getDimensions(scannerContainer) {
+    let buttonHeight = 40;
     return {
       width: scannerContainer.offsetWidth,
       height: scannerContainer.offsetHeight,
-      frame: 0.75 * Math.min(scannerContainer.offsetWidth, scannerContainer.offsetHeight)
+      frame: 0.75 * Math.min(scannerContainer.offsetWidth, scannerContainer.offsetHeight) - buttonHeight
     }
   }
 

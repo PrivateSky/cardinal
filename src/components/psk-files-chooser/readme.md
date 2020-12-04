@@ -16,19 +16,6 @@
 | `listFiles`   | `list-files`   |             | `boolean` | `false`          |
 
 
-## Dependencies
-
-### Depends on
-
-- [psk-icon](../psk-icon)
-
-### Graph
-```mermaid
-graph TD;
-  psk-files-chooser --> psk-icon
-  style psk-files-chooser fill:#f9f,stroke:#333,stroke-width:4px
-```
-
 ----------------------------------------------
 
 *Built with [StencilJS](https://stenciljs.com/)*

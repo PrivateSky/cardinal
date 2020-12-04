@@ -1,15 +1,16 @@
 import { Component, Prop, State, Element, h } from '@stencil/core';
-
-import CustomTheme from '../../../decorators/CustomTheme';
-import { BindModel } from '../../../decorators';
-import { TableOfContentProperty } from '../../../decorators';
-
-import VideoOverlay from './VideoOverlay.js';
-import audioData from './audioData.js';
+import { BindModel, CustomTheme, TableOfContentProperty } from '../../../decorators';
+import { VideoOverlay } from './overlays';
+import audio from './audio';
 
 const INTERVAL_ZXING_LOADED = 300;
 const INTERVAL_BETWEEN_SCANS = 2000;
 const DELAY_AFTER_RESULT = 500;
+const STATUS = {
+  IN_PROGRESS: "Camera detection in progress...",
+  DONE: "Scan done.",
+  NO_DETECTION: "No camera detected."
+}
 
 @Component({
   tag: 'psk-barcode-scanner'
@@ -36,34 +37,16 @@ export class PskBarcodeScanner {
   })
   @Prop() title: string = '';
 
-  // @TableOfContentProperty({
-  //   description: `A boolean value indicating that the current component instance is accepting files from the device. Please note that if no camera is detected, this feature will be automatically enabled.`,
-  //   isMandatory: false,
-  //   propertyType: `boolean`
-  // })
-  // @Prop() allowFileBrowsing: boolean = false;
-
-  // @TableOfContentProperty({
-  //   description: [
-  //     `A boolean value indicating the scope of the 2D matrix of scanner.`,
-  //     `If it is <code>true</code> the component will analyze only the center square / frame.`,
-  //     `Otherwise the entire screen.`
-  //   ],
-  //   isMandatory: false,
-  //   propertyType: `boolean`
-  // })
-  // @Prop() disableFrame = false;
-
   @State() ZXing = null;
   @State() activeDeviceId: string | null = null;
-  @State() cameraIsAvailable = false;
+  @State() status = STATUS.IN_PROGRESS;
+  @State() isCameraAvailable = false;
 
   private codeReader = null;
-  private devices = [];
   private overlay = null;
-  private scanDone = false;
-  private componentIsDisconnected = false;
-  private status = "Camera detection in progress...";
+  private devices = [];
+  private isScanDone = false;
+  private isComponentDisconnected = false;
 
   constructor() {
     window.addEventListener('resize', _ => {
@@ -73,7 +56,7 @@ export class PskBarcodeScanner {
     });
   }
 
-  drawOverlays() {
+  private drawOverlays() {
     if (!this.element) {
       return;
     }
@@ -86,50 +69,43 @@ export class PskBarcodeScanner {
     this.overlay.drawLensCanvas();
   }
 
-  cleanupOverlays() {
+  private cleanupOverlays() {
     if (this.overlay) {
       this.overlay.removeOverlays();
     }
   }
 
-  startScanning(deviceId) {
+  private startScanning(deviceId) {
     const videoElement = this.element.querySelector('#video');
-
-    // let log = console.log;
-    // console.log = (...args) => {
-    //   if (args.length != 0 && args[0] instanceof this.ZXing.NotFoundException) {
-    //     return;
-    //   }
-    //   log(...args);
-    // }
 
     const constraints = {
       video: {
         facingMode: 'environment'
       }
-    }
+    };
 
     if (deviceId && deviceId !== 'no-camera') {
       delete constraints.video.facingMode;
-      constraints.video['deviceId'] = { exact: deviceId };
+      constraints.video['deviceId'] = {
+        exact: deviceId
+      };
     }
 
-    if (!this.scanDone) {
+    if (!this.isScanDone) {
       this.cleanupOverlays();
       this.drawOverlays();
 
       this.codeReader.reset();
       this.codeReader.decodeFromConstraints(constraints, videoElement, (result, err) => {
-        if (result && !this.scanDone) {
+        if (result && !this.isScanDone) {
           console.log('result', result);
 
           if (this.modelHandler) {
-            audioData.play();
+            audio.play();
             this.overlay.drawOverlay(result.resultPoints);
             this.modelHandler.updateModel('data', result.text);
-            this.scanDone = true;
-            this.status = "Scan done.";
-            // console.log = log;
+            this.isScanDone = true;
+            this.status = STATUS.DONE;
 
             setTimeout(_ => {
               this.codeReader.reset();
@@ -144,7 +120,7 @@ export class PskBarcodeScanner {
     }
   }
 
-  switchCamera() {
+  private switchCamera() {
     let devices = [undefined];
 
     for (const device of this.devices) {
@@ -158,7 +134,7 @@ export class PskBarcodeScanner {
     currentIndex++;
 
     this.activeDeviceId = devices[currentIndex];
-    this.scanDone = false;
+    this.isScanDone = false;
   }
 
   async componentWillLoad() {
@@ -182,28 +158,32 @@ export class PskBarcodeScanner {
 
     // No devices yet
     if (this.devices.length === 0 || !this.activeDeviceId) {
-      this.devices = await this.codeReader.listVideoInputDevices();
+      try {
+        this.devices = await this.codeReader.listVideoInputDevices();
+      } catch (error) {
+        // console.error(error);
+      }
 
       if (this.devices.length > 0) {
-        this.cameraIsAvailable = true;
-      }else{
-        this.status = "No camera detected.";
+        this.isCameraAvailable = true;
+      } else {
+        this.status = STATUS.NO_DETECTION;
       }
     }
   }
 
   async componentDidRender() {
-    if (this.cameraIsAvailable && !this.componentIsDisconnected) {
+    if (this.isCameraAvailable && !this.isComponentDisconnected) {
       this.startScanning(this.activeDeviceId);
     }
   }
 
   async connectedCallback() {
-    this.componentIsDisconnected = false;
+    this.isComponentDisconnected = false;
   }
 
   async disconnectedCallback() {
-    this.componentIsDisconnected = true;
+    this.isComponentDisconnected = true;
 
     if (this.codeReader) {
       this.codeReader.reset();
@@ -220,13 +200,14 @@ export class PskBarcodeScanner {
         position: 'relative',
         display: 'grid', gridTemplateRows: '1fr',
         overflow: 'hidden',
-        minHeight: '300px'
+        minHeight: '350px',
+        padding: '0', margin: '0'
       },
       video: {
         height: '100%', width: '100%',
         objectFit: 'cover'
       },
-      hidden: {
+      input: {
         display: 'none'
       },
       button: {
@@ -238,18 +219,21 @@ export class PskBarcodeScanner {
         fontSize: '15px'
       }
     }
+    const cardinal = (window['cardinal'] && window['cardinal']['base'] ? window['cardinal']['base'] : '/cardinal');
 
     return [
-      <script async src={`${window['cardinalBase'] || ''}/cardinal/libs/zxing.new.js`}/>,
+      <script async src={`${cardinal}/libs/zxing.js`}/>,
       <div title={this.title} style={style.barcodeWrapper}>
         {
-          this.cameraIsAvailable === true && this.scanDone === false ? (
+          this.isCameraAvailable && !this.isScanDone
+          ? (
             <div id="scanner-container" style={style.videoWrapper}>
-              <input type="file" accept="video/*" capture="camera" style={style.hidden}/>
+              <input type="file" accept="video/*" capture="camera" style={style.input}/>
               <video id="video" muted autoplay playsinline={true} style={style.video}/>
               <button onClick={_ => this.switchCamera()} style={style.button}>Change camera</button>
             </div>
-          ) : <div>{this.status}</div>
+          )
+          : <div>{this.status}</div>
         }
       </div>
     ];
