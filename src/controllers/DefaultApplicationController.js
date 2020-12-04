@@ -1,5 +1,7 @@
 import AppConfigurationHelper from "./AppConfigurationHelper.js";
 import defaultApplicationConfig from "./defaultApplicationConfig.json";
+import fetch from "../utils/fetch.js";
+
 let configUrl = "config.json";
 let menuUrl = "menu.json";
 window.globalConfig = {};

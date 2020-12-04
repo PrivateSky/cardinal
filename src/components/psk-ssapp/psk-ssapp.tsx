@@ -6,6 +6,8 @@ import CustomTheme from "../../decorators/CustomTheme";
 import SSAppInstanceRegistry from "./SSAppInstancesRegistry.js";
 import NavigatinTrackerService from "./NavigationTrackerService.js";
 
+declare const $$: any;
+
 @Component({
 	tag: 'psk-ssapp',
 	shadow: false
@@ -139,8 +141,8 @@ export class PskSelfSovereignApp {
 			basePath = currentWindow.location.origin+currentWindow.location.pathname;
 			if (basePath[basePath.length - 1] !== '/') {
 				basePath += '/';
-			}
-
+      }
+      
 			let queryParams = "?";
 			if (this.parsedParams) {
         queryParams += Object.keys(this.parsedParams)
@@ -148,7 +150,10 @@ export class PskSelfSovereignApp {
           .join('&');
       }
 
-			const iframeSrc = basePath + "iframe/" + this.digestKeySsiHex + (queryParams.length > 1 ? queryParams : "");
+            // we are in a context in which SW are not enabled so the iframe must be identified by the seed
+            const iframeKeySsi = $$.SSAPP_CONTEXT && $$.SSAPP_CONTEXT.BASE_URL && $$.SSAPP_CONTEXT.SEED ? this.seed : this.digestKeySsiHex;
+
+			const iframeSrc = basePath + "iframe/" + iframeKeySsi + (queryParams.length > 1 ? queryParams : "");
 			return (
 				<iframe
 					landing-page={this.landingPath}

@@ -438,6 +438,7 @@ export namespace Components {
         "history": RouterHistory;
         "landingPath": string;
         "match": MatchResults;
+        "params": string;
         "seed": string;
     }
     interface PskStepper {
@@ -1672,6 +1673,7 @@ declare namespace LocalJSX {
         "history"?: RouterHistory;
         "landingPath"?: string;
         "match"?: MatchResults;
+        "params"?: string;
         "seed"?: string;
     }
     interface PskStepper {

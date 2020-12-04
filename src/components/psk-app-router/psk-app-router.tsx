@@ -5,6 +5,8 @@ import {TableOfContentEvent} from "../../decorators/TableOfContentEvent";
 import {ExtendedHistoryType} from "../../interfaces/ExtendedHistoryType";
 import CustomTheme from "../../decorators/CustomTheme";
 
+declare const $$: any;
+
 @Component({
   tag: "psk-app-router",
   shadow: true
@@ -159,6 +161,11 @@ export class PskAppRouter {
       this.notFoundRoute = this.routesItems[0].path;
     }
     let basePathname = new URL(window['basePath']).pathname;
+    if($$.SSAPP_CONTEXT && $$.SSAPP_CONTEXT.BASE_URL && $$.SSAPP_CONTEXT.SEED) {
+        // if we have a BASE_URL then remove this from basePathname
+        basePathname = basePathname.replace(new URL($$.SSAPP_CONTEXT.BASE_URL).pathname, "");
+    }
+
     let landingPagePaths = [basePathname];
     if (basePathname.length > 1 && basePathname.endsWith("/")) {
       basePathname = basePathname.substring(0, basePathname.length - 1);

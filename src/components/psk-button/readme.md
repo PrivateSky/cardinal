@@ -25,7 +25,6 @@
 ### Used by
 
  - [psk-attachments-list](../psk-attachments-list)
- - [psk-barcode-scanner](../psk-barcode/psk-barcode-scanner)
  - [psk-breadcrumb-navigator](../psk-breadcrumb-navigator)
  - [psk-icon-chooser](../psk-icon-chooser)
  - [psk-mobile](../psk-mobile)
@@ -35,7 +34,6 @@
 ```mermaid
 graph TD;
   psk-attachments-list --> psk-button
-  psk-barcode-scanner --> psk-button
   psk-breadcrumb-navigator --> psk-button
   psk-icon-chooser --> psk-button
   psk-mobile --> psk-button

@@ -1,4 +1,6 @@
 import {getElement, ComponentInterface} from "@stencil/core";
+import fetch from "../../utils/fetch.js";
+
 const SLOTTED = "SLOTTED:";
 declare type CustomThemeInterface = (
   target: ComponentInterface,
