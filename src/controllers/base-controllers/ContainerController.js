@@ -229,9 +229,15 @@ export default class ContainerController {
     }
   }
 
-
-  showFeedbackMessage(message) {
-    this.feedbackEmitter = message;
+  showFeedbackMessage(errMessage, title, type) {
+    title = title ? title : 'Message';
+    type = type ? type : 'alert';
+    if(typeof this.feedbackEmitter === "function"){
+      this.feedbackEmitter(errMessage, title, type);
+    } else {
+      console.log("Log user relevant messages & Errors:", errMessage);
+      alert(errMessage)
+    }
   }
 
   showError(err, title, type) {
@@ -246,7 +252,6 @@ export default class ContainerController {
     } else {
       errMessage = err;
     }
-    this.feedbackEmitter(errMessage, title, type);
+    this.showFeedbackMessage(errMessage, title, type);
   }
-
 }
