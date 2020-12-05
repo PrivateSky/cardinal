@@ -228,4 +228,25 @@ export default class ContainerController {
       this.element.removeEventListener('bindModalData', eventHandlerToRemove);
     }
   }
+
+
+  showFeedbackMessage(message) {
+    this.feedbackEmitter = message;
+  }
+
+  showError(err, title, type) {
+    let errMessage;
+    title = title ? title : 'Validation Error';
+    type = type ? type : 'alert-danger';
+
+    if (err instanceof Error) {
+      errMessage = err.message;
+    } else if (typeof err === 'object') {
+      errMessage = err.toString();
+    } else {
+      errMessage = err;
+    }
+    this.feedbackEmitter(errMessage, title, type);
+  }
+
 }

@@ -139,10 +139,11 @@ export class PskSelfSovereignApp {
 		catch (e) { }
 		finally {
 			basePath = currentWindow.location.origin+currentWindow.location.pathname;
+      basePath = basePath.replace("index.html", "")
 			if (basePath[basePath.length - 1] !== '/') {
 				basePath += '/';
       }
-      
+
 			let queryParams = "?";
 			if (this.parsedParams) {
         queryParams += Object.keys(this.parsedParams)
@@ -154,6 +155,7 @@ export class PskSelfSovereignApp {
             const iframeKeySsi = $$.SSAPP_CONTEXT && $$.SSAPP_CONTEXT.BASE_URL && $$.SSAPP_CONTEXT.SEED ? this.seed : this.digestKeySsiHex;
 
 			const iframeSrc = basePath + "iframe/" + iframeKeySsi + (queryParams.length > 1 ? queryParams : "");
+      console.log("Loading sssap in: " + iframeSrc);
 			return (
 				<iframe
 					landing-page={this.landingPath}
