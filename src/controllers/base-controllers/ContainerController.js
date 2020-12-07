@@ -14,11 +14,11 @@ export default class ContainerController {
 
     let dispatchModel = function (bindValue, model, callback) {
       if (bindValue && model[bindValue]) {
-         callback(null, model[bindValue])
+        callback(null, model[bindValue])
       }
 
       if (!bindValue) {
-         callback(null, model);
+        callback(null, model);
       }
     };
 
@@ -43,7 +43,7 @@ export default class ContainerController {
     };
 
     let notifyModelReady = () => {
-      modelReadyCallbacks.forEach(callback=>{
+      modelReadyCallbacks.forEach(callback => {
         callback();
       });
     }
@@ -232,7 +232,7 @@ export default class ContainerController {
   showFeedbackMessage(errMessage, title, type) {
     title = title ? title : 'Message';
     type = type ? type : 'alert';
-    if(typeof this.feedbackEmitter === "function"){
+    if (typeof this.feedbackEmitter === "function") {
       this.feedbackEmitter(errMessage, title, type);
     } else {
       console.log("Log user relevant messages & Errors:", errMessage);
@@ -253,5 +253,35 @@ export default class ContainerController {
       errMessage = err;
     }
     this.showFeedbackMessage(errMessage, title, type);
+  }
+
+  showErrorModalAndRedirect(errorText, page, timeout) {
+    if (!timeout) {
+      timeout = 5000;
+    }
+    this.element.dispatchEvent(new Event('closeModal'));
+    this.showModal('loadingModal', {
+      title: 'Error',
+      description: errorText
+    });
+    setTimeout(() => {
+      this.element.dispatchEvent(new Event('closeModal'));
+      this.History.navigateToPageByTag(page);
+    }, timeout)
+  }
+
+  displayModal(message, title) {
+    if(!title){
+      title = "Info";
+    }
+    this.showModal('loadingModal', {
+      title: title,
+      description: message
+    });
+  }
+
+
+  closeModal() {
+    this.element.dispatchEvent(new Event('closeModal'));
   }
 }
