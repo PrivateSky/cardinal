@@ -161,7 +161,7 @@ export class PskAppRouter {
       this.notFoundRoute = this.routesItems[0].path;
     }
     let basePathname = new URL(window['basePath']).pathname;
-    if($$.SSAPP_CONTEXT && $$.SSAPP_CONTEXT.BASE_URL && $$.SSAPP_CONTEXT.SEED) {
+    if(window['$$'] && $$.SSAPP_CONTEXT && $$.SSAPP_CONTEXT.BASE_URL && $$.SSAPP_CONTEXT.SEED) {
         // if we have a BASE_URL then remove this from basePathname
         basePathname = basePathname.replace(new URL($$.SSAPP_CONTEXT.BASE_URL).pathname, "");
     }

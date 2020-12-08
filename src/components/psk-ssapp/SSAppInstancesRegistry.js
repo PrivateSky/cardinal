@@ -14,7 +14,7 @@ class SSAppInstancesRegistry {
 
   constructor(){
     this.registry = [];
-    if($$.SSAPP_CONTEXT && $$.SSAPP_CONTEXT.BASE_URL && $$.SSAPP_CONTEXT.SEED) {
+    if(window['$$'] && $$.SSAPP_CONTEXT && $$.SSAPP_CONTEXT.BASE_URL && $$.SSAPP_CONTEXT.SEED) {
         // the app is handled via server to we don't need to initialise the swarms
         return;
     }
