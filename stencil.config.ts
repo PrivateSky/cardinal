@@ -20,7 +20,7 @@ export const config: CardinalConfig = {
         { src: 'controllers/AppConfigurationHelper.js', dest: "../cardinal/controllers/AppConfigurationHelper.js", warn: true },
         { src: 'controllers/base-controllers', dest: "../cardinal/controllers/base-controllers", warn: true },
         { src: 'events/*.js', dest: "../cardinal/events", warn: true },
-        { src: 'libs/*.js', dest: "../cardinal/libs", warn: true }
+        { src: 'libs/*.js', dest: "../cardinal/libs", warn: true },
         { src: 'utils/fetch.js', warn: true },
       ]
     },

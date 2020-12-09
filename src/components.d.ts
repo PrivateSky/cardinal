@@ -180,6 +180,8 @@ export namespace Components {
         "opened": boolean;
         "title": string;
     }
+    interface PskDraggableList {
+    }
     interface PskEcho {
         "value": string | null;
     }
@@ -753,6 +755,12 @@ declare global {
         prototype: HTMLPskDetailsElement;
         new (): HTMLPskDetailsElement;
     };
+    interface HTMLPskDraggableListElement extends Components.PskDraggableList, HTMLStencilElement {
+    }
+    var HTMLPskDraggableListElement: {
+        prototype: HTMLPskDraggableListElement;
+        new (): HTMLPskDraggableListElement;
+    };
     interface HTMLPskEchoElement extends Components.PskEcho, HTMLStencilElement {
     }
     var HTMLPskEchoElement: {
@@ -1164,6 +1172,7 @@ declare global {
         "psk-default-renderer": HTMLPskDefaultRendererElement;
         "psk-description": HTMLPskDescriptionElement;
         "psk-details": HTMLPskDetailsElement;
+        "psk-draggable-list": HTMLPskDraggableListElement;
         "psk-echo": HTMLPskEchoElement;
         "psk-email-input": HTMLPskEmailInputElement;
         "psk-event-descriptor": HTMLPskEventDescriptorElement;
@@ -1407,6 +1416,8 @@ declare namespace LocalJSX {
         "layout"?: string;
         "opened"?: boolean;
         "title"?: string;
+    }
+    interface PskDraggableList {
     }
     interface PskEcho {
         "value"?: string | null;
@@ -1833,6 +1844,7 @@ declare namespace LocalJSX {
         "psk-default-renderer": PskDefaultRenderer;
         "psk-description": PskDescription;
         "psk-details": PskDetails;
+        "psk-draggable-list": PskDraggableList;
         "psk-echo": PskEcho;
         "psk-email-input": PskEmailInput;
         "psk-event-descriptor": PskEventDescriptor;
@@ -1934,6 +1946,7 @@ declare module "@stencil/core" {
             "psk-default-renderer": LocalJSX.PskDefaultRenderer & JSXBase.HTMLAttributes<HTMLPskDefaultRendererElement>;
             "psk-description": LocalJSX.PskDescription & JSXBase.HTMLAttributes<HTMLPskDescriptionElement>;
             "psk-details": LocalJSX.PskDetails & JSXBase.HTMLAttributes<HTMLPskDetailsElement>;
+            "psk-draggable-list": LocalJSX.PskDraggableList & JSXBase.HTMLAttributes<HTMLPskDraggableListElement>;
             "psk-echo": LocalJSX.PskEcho & JSXBase.HTMLAttributes<HTMLPskEchoElement>;
             "psk-email-input": LocalJSX.PskEmailInput & JSXBase.HTMLAttributes<HTMLPskEmailInputElement>;
             "psk-event-descriptor": LocalJSX.PskEventDescriptor & JSXBase.HTMLAttributes<HTMLPskEventDescriptorElement>;
