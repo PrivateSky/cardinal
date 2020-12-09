@@ -219,7 +219,7 @@ export class PskBarcodeScanner {
         fontSize: '15px'
       }
     }
-    const cardinal = (window['cardinal'] && window['cardinal']['base'] ? window['cardinal']['base'] : '/cardinal');
+    const cardinal = (window['cardinal'] && window['cardinal']['base'] ? window['cardinal']['base'] : 'cardinal');
 
     return [
       <script async src={`${cardinal}/libs/zxing.js`}/>,
