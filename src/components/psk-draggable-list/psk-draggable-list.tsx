@@ -1,7 +1,7 @@
 import {Component, h, State} from "@stencil/core";
 import CustomTheme from "../../decorators/CustomTheme";
 import {BindModel} from "../../decorators";
-import {IndexedOption} from "../../interfaces/FormModel";
+import {DraggableOption} from "../../interfaces/FormModel";
 
 @Component({
   tag: "psk-draggable-list",
@@ -12,7 +12,7 @@ export class PskDraggableList {
 
   @BindModel() modelHandler;
 
-  @State() items: Array<IndexedOption>;
+  @State() items: Array<DraggableOption>;
 
   SWAP_TYPE = {
     UP: 'up',
