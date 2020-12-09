@@ -9,7 +9,7 @@ export interface RadioOption {
     name?: string;
     checked?: boolean;
     /**
-     * By using this property, you can disable the option from being checked. 
+     * By using this property, you can disable the option from being checked.
      * This can be used for conditionals
      */
     readOnly?: boolean;
@@ -24,19 +24,31 @@ export interface Option {
     value?: string;
     selected?: boolean;
     /**
-     * By using this property, you can disable the option from being selected. 
+     * By using this property, you can disable the option from being selected.
      * This can be used for conditionals
      */
     disabled?: boolean;
 };
 
+
+/**
+ * IndexedOption interface is used to define the options for a draggable list component.
+ * It can be single selection.
+ */
+export interface IndexedOption {
+  label: string;
+  value: string;
+  index: number;
+  selected?: boolean;
+};
+
 /**
  * FormAction interface is used to define the list of action buttons form the form
  * E.g.: Submit, Reset, Cancel, Go Back...
- * 
+ *
  * If eventName property will be set, inside the DefaultController of the application or in the controller
  * of the form, that event needs to be listened, otherwise, the triggered event is useless.
- * 
+ *
  * type property has two possible values, standard for HTML: submit and reset.
  * If no type is provided, submit is assumed.
  */
@@ -72,7 +84,7 @@ export interface FormComponent {
      */
     type?: string;
     /**
-     * This is the value that will be displayed when the form is loaded. 
+     * This is the value that will be displayed when the form is loaded.
      * The property is optional.
      */
     defaultValue?: string;
@@ -103,7 +115,7 @@ export interface FormComponent {
      */
     placeHolder?: string;
     /**
-     * Used to store the list of selected values 
+     * Used to store the list of selected values
      * Available only for selection list component with type multiple
      */
     values?: Array<string>;
@@ -114,7 +126,7 @@ export interface FormComponent {
     options?: Array<Option>;
 
     /**
-     * This property will be filled inside controller if the component does not pass the validation step 
+     * This property will be filled inside controller if the component does not pass the validation step
      */
     invalidValue?: boolean;
 
