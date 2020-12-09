@@ -26,6 +26,7 @@
 
  - [psk-attachments-list](../psk-attachments-list)
  - [psk-breadcrumb-navigator](../psk-breadcrumb-navigator)
+ - [psk-draggable-list](../psk-draggable-list)
  - [psk-icon-chooser](../psk-icon-chooser)
  - [psk-mobile](../psk-mobile)
  - [psk-tab-navigator](../psk-tabs/psk-tab-navigator)
@@ -35,6 +36,7 @@
 graph TD;
   psk-attachments-list --> psk-button
   psk-breadcrumb-navigator --> psk-button
+  psk-draggable-list --> psk-button
   psk-icon-chooser --> psk-button
   psk-mobile --> psk-button
   psk-tab-navigator --> psk-button

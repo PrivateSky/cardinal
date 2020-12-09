@@ -73,9 +73,11 @@ export class PskDraggableList {
     let currentElement = itemArray[selectedIndex];
     itemArray[selectedIndex] = itemArray[toChangeIndex];
     itemArray[toChangeIndex] = currentElement;
-
-    this.items = itemArray;
-    this.modelHandler.updateModel('items', itemArray);
+    let cleanItems = JSON.parse(JSON.stringify(itemArray));
+    this.items = cleanItems;
+    if (this.modelHandler) {
+      this.modelHandler.updateModel('items', cleanItems);
+    }
   }
 
   __clearMultipleSelections() {

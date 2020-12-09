@@ -24,6 +24,7 @@
  - [psk-button-group](../psk-button-group)
  - [psk-button-link](../psk-button-link)
  - [psk-details](../psk-details)
+ - [psk-draggable-list](../psk-draggable-list)
  - [psk-img-input](../form-components/psk-img-input)
  - [psk-mobile](../psk-mobile)
  - [psk-modal](../psk-modal)
@@ -37,6 +38,7 @@ graph TD;
   psk-button-group --> psk-icon
   psk-button-link --> psk-icon
   psk-details --> psk-icon
+  psk-draggable-list --> psk-icon
   psk-img-input --> psk-icon
   psk-mobile --> psk-icon
   psk-modal --> psk-icon
