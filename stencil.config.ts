@@ -25,9 +25,6 @@ export const config: CardinalConfig = {
       ]
     },
     {
-      type: 'docs-readme'
-    },
-    {
       type: 'www',
       serviceWorker: null // disable service workers
     }
