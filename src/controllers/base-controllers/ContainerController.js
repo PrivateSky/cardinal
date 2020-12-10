@@ -46,7 +46,7 @@ export default class ContainerController {
       modelReadyCallbacks.forEach(callback => {
         callback();
       });
-    }
+    };
 
 
     this.setModel = (model) => {
@@ -60,7 +60,7 @@ export default class ContainerController {
         return callback();
       }
       modelReadyCallbacks.push(callback);
-    }
+    };
 
 
     __initGetModelEventListener();
@@ -157,9 +157,8 @@ export default class ContainerController {
   }
 
   __getModalsUrl(callback) {
-
-    if (this.modalsUrls) {
-      return callback(this.modalsUrls)
+   if (this.modalsUrls) {
+      return callback(undefined, this.modalsUrls);
     }
 
     let event = new CustomEvent("getModals", {
@@ -196,16 +195,22 @@ export default class ContainerController {
     const bindModalDataHandler = function (evt) {
       let callback = evt.data.callback;
       callback(undefined, bindContextData, completeCallback);
-    }
+    };
 
     this.__getModalsUrl((err, modalsUrls) => {
+
       if (err) {
-        throw err;
+        console.error("Modals error:" + err.message);
+        return ;
       }
 
-      if (!modalsUrls) {
-        throw new Error("Modals is not configured for this app");
+      this.modalsUrls = modalsUrls;
+
+      if (!this.modalsUrls) {
+        console.error("Modal " + modalName + "is not configured");
+        return ;
       }
+
 
       let appModalPath = modalsUrls[modalName];
       if (!appModalPath) {
