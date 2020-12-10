@@ -29,7 +29,7 @@ function updateDossier(bar, callback) {
       throw err;
     }
 
-    bar.addFolder("dist/cardinal", "/", {batch: true, encrypt: false}, (err, archiveDigest) => {
+    bar.addFolder("dist/cardinal", "/", {batch: false, encrypt: false}, (err, archiveDigest) => {
       if (err) {
         return callback(err);
       }
