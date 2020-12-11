@@ -102,6 +102,12 @@ export class PskMobile {
     return null;
   }
 
+  private static disablePullDownToRefresh() {
+    if (document && document.body) {
+      document.body.style['overscroll-behavior-y'] = 'contain';
+    }
+  }
+
   @Listen('click')
   onClickEvent(e) {
     e.preventDefault();
@@ -139,6 +145,8 @@ export class PskMobile {
   }
 
   async componentWillLoad() {
+    PskMobile.disablePullDownToRefresh();
+
     const options = this.__findElementBySlot('options');
     if (options) {
       this.options.disabled = false;
