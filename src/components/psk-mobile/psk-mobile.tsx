@@ -104,7 +104,16 @@ export class PskMobile {
 
   private static disablePullDownToRefresh() {
     if (document && document.body) {
-      document.body.style['overscroll-behavior-y'] = 'contain';
+      let styles = {
+        width: '100%', height: '100%',
+        overflow: 'auto',
+        '-webkit-overflow-scrolling': 'touch',
+        'overscroll-behavior-y': 'contain'
+      }
+
+      for (const attribute in styles) {
+        document.body.style[attribute] = styles[attribute];
+      }
     }
   }
 
