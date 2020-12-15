@@ -182,7 +182,7 @@ export class PskSelect {
             value={optValue}
             label={option.label}
             selected={isSelected}
-          />
+          >{option.label}</option>
         );
       });
     }
