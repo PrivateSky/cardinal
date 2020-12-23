@@ -102,6 +102,21 @@ export class PskMobile {
     return null;
   }
 
+  private static disablePullDownToRefresh() {
+    if (document && document.body) {
+      let styles = {
+        width: '100%', height: '100%',
+        overflow: 'auto',
+        '-webkit-overflow-scrolling': 'touch',
+        'overscroll-behavior-y': 'contain'
+      }
+
+      for (const attribute in styles) {
+        document.body.style[attribute] = styles[attribute];
+      }
+    }
+  }
+
   @Listen('click')
   onClickEvent(e) {
     e.preventDefault();
@@ -139,6 +154,8 @@ export class PskMobile {
   }
 
   async componentWillLoad() {
+    PskMobile.disablePullDownToRefresh();
+
     const options = this.__findElementBySlot('options');
     if (options) {
       this.options.disabled = false;
