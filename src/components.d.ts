@@ -394,6 +394,12 @@ export namespace Components {
     interface PskPinPopup {
         "opened": boolean;
     }
+    interface PskProgress {
+        "color": string;
+        "label": string;
+        "max": number;
+        "value": number;
+    }
     interface PskPropertyDescriptor {
         "title": string;
     }
@@ -977,6 +983,12 @@ declare global {
         prototype: HTMLPskPinPopupElement;
         new (): HTMLPskPinPopupElement;
     };
+    interface HTMLPskProgressElement extends Components.PskProgress, HTMLStencilElement {
+    }
+    var HTMLPskProgressElement: {
+        prototype: HTMLPskProgressElement;
+        new (): HTMLPskProgressElement;
+    };
     interface HTMLPskPropertyDescriptorElement extends Components.PskPropertyDescriptor, HTMLStencilElement {
     }
     var HTMLPskPropertyDescriptorElement: {
@@ -1209,6 +1221,7 @@ declare global {
         "psk-page-not-found-renderer": HTMLPskPageNotFoundRendererElement;
         "psk-password-input": HTMLPskPasswordInputElement;
         "psk-pin-popup": HTMLPskPinPopupElement;
+        "psk-progress": HTMLPskProgressElement;
         "psk-property-descriptor": HTMLPskPropertyDescriptorElement;
         "psk-radio": HTMLPskRadioElement;
         "psk-radio-group": HTMLPskRadioGroupElement;
@@ -1637,6 +1650,12 @@ declare namespace LocalJSX {
         "onSendPin"?: (event: CustomEvent<any>) => void;
         "opened"?: boolean;
     }
+    interface PskProgress {
+        "color"?: string;
+        "label"?: string;
+        "max"?: number;
+        "value"?: number;
+    }
     interface PskPropertyDescriptor {
         "title"?: string;
     }
@@ -1881,6 +1900,7 @@ declare namespace LocalJSX {
         "psk-page-not-found-renderer": PskPageNotFoundRenderer;
         "psk-password-input": PskPasswordInput;
         "psk-pin-popup": PskPinPopup;
+        "psk-progress": PskProgress;
         "psk-property-descriptor": PskPropertyDescriptor;
         "psk-radio": PskRadio;
         "psk-radio-group": PskRadioGroup;
@@ -1983,6 +2003,7 @@ declare module "@stencil/core" {
             "psk-page-not-found-renderer": LocalJSX.PskPageNotFoundRenderer & JSXBase.HTMLAttributes<HTMLPskPageNotFoundRendererElement>;
             "psk-password-input": LocalJSX.PskPasswordInput & JSXBase.HTMLAttributes<HTMLPskPasswordInputElement>;
             "psk-pin-popup": LocalJSX.PskPinPopup & JSXBase.HTMLAttributes<HTMLPskPinPopupElement>;
+            "psk-progress": LocalJSX.PskProgress & JSXBase.HTMLAttributes<HTMLPskProgressElement>;
             "psk-property-descriptor": LocalJSX.PskPropertyDescriptor & JSXBase.HTMLAttributes<HTMLPskPropertyDescriptorElement>;
             "psk-radio": LocalJSX.PskRadio & JSXBase.HTMLAttributes<HTMLPskRadioElement>;
             "psk-radio-group": LocalJSX.PskRadioGroup & JSXBase.HTMLAttributes<HTMLPskRadioGroupElement>;
