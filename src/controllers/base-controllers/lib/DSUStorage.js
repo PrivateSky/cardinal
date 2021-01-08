@@ -154,12 +154,17 @@ class DSUStorage {
       let dataSerialized = JSON.stringify(data);
       this.setItem(path, dataSerialized, callback);
     } catch (e) {
-      callback(e);
+      callback(createOpenDSUErrorWrapper("setObject failed",e));
     }
   }
 
   getObject(path, callback) {
-    this.getItem(path, "json", callback)
+    this.getItem(path, "json", function(err,res){
+      if(err || !res){
+          return callback(undefined,undefined);
+      }
+      callback(undefined,res);
+    })
   }
 
   setItem(path, data, callback) {
