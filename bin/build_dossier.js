@@ -33,7 +33,7 @@ function updateDossier(bar, callback) {
       if (err) {
         return callback(err);
       }
-      bar.getKeySSI((err, keySSI) => {
+      bar.getKeySSIAsString((err, keySSI) => {
         if (err) {
           return callback(err);
         }
