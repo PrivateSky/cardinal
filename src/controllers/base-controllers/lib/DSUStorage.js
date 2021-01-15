@@ -126,6 +126,48 @@ function performRemoval(filePathList, callback) {
 }
 
 class DSUStorage {
+    constructor(height, width) {
+      this.directAccessEnabled = false;
+    }
+
+    enableDirectAccess(){
+      if(!this.directAccessEnabled){
+        let availableFunctions = [
+          "addFile",
+          "addFiles",
+          "addFolder",
+          "appendToFile",
+          "createFolder",
+          "delete",
+          "extractFile",
+          "extractFolder",
+          "getArchiveForPath",
+          "getCreationSSI",
+          "getKeySSI",
+          "listFiles",
+          "listFolders",
+          "mount",
+          "readDir",
+          "readFile",
+          "rename",
+          "unmount",
+          "writeFile",
+          "listMountedDSUs",
+          "beginBatch",
+          "commitBatch",
+          "cancelBatch"
+      ];
+
+        let sc = require("opendsu").loadAPI("sc");
+
+        let mainDSU = sc.getMainDSU();
+        for(let f of availableFunctions){
+          console.log(f);
+          this[f] = mainDSU[f];
+        }
+        this.directAccessEnabled = true
+      }
+    }
 
   call(name, ...args) {
     if(args.length === 0){
@@ -168,28 +210,48 @@ class DSUStorage {
   }
 
   setItem(path, data, callback) {
-    let segments = path.split("/");
-    let fileName = segments.splice(segments.length - 1, 1)[0];
-    path = segments.join("/");
-    if (!path) {
-      path = "/";
+    if(!this.directAccessEnabled){
+      let segments = path.split("/");
+      let fileName = segments.splice(segments.length - 1, 1)[0];
+      path = segments.join("/");
+      if (!path) {
+        path = "/";
+      }
+      let url = `/upload?path=${path}&filename=${fileName}`;
+      doUpload(url, data, callback);
+    } else {
+        this.writeFile(path, data, callback);
     }
-    let url = `/upload?path=${path}&filename=${fileName}`;
-    doUpload(url, data, callback);
   }
 
-  getItem(url, expectedResultType, callback) {
+  getItem(path, expectedResultType, callback) {
     if (typeof expectedResultType === "function") {
       callback = expectedResultType;
       expectedResultType = "arrayBuffer";
     }
 
-    if (url[0] !== "/") {
-      url = "/" + url;
-    }
+    if(!this.directAccessEnabled){
+      if (path[0] !== "/") {
+        path = "/" + path;
+      }
 
-    url = "/download" + url;
-    doDownload(url, expectedResultType, callback);
+      path = "/download" + path;
+      doDownload(path, expectedResultType, callback);
+    } else {
+      this.readFile(path, function(err, res){
+        if(err){
+          return callback(err);
+        }
+        try{
+          if(expectedResultType == "json"){
+            res = JSON.parse(res.toString());
+          }
+        } catch(err){
+          return callback(err);
+        }
+        callback(undefined, res);
+      })
+    }
   }
 
   uploadFile(path, file, options, callback) {
