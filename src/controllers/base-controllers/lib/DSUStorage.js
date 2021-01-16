@@ -130,7 +130,7 @@ class DSUStorage {
       this.directAccessEnabled = false;
     }
 
-  enableDirectAccess(){
+  enableDirectAccess(callback){
     let self = this;
 
     function addFunctionsFromMainDSU(){
@@ -167,7 +167,8 @@ class DSUStorage {
         for(let f of availableFunctions){
           self[f] = mainDSU[f];
         }
-        self.directAccessEnabled = true
+        self.directAccessEnabled = true;
+        callback(undefined,true);
       }
     }
 
@@ -197,6 +198,7 @@ class DSUStorage {
           }
           opendsu.loadAPI("resolver").loadDSU(res, (err, mainDSU) => {
             if (err) {
+              printOpenDSUError(err);
                reportUserRelevantInfo("Reattempting to enable direct DSUStorage from Cardinal",err);
               setTimeout(function(){
                 getMainDSU(continuation);
