@@ -130,8 +130,12 @@ class DSUStorage {
       this.directAccessEnabled = false;
     }
 
-    enableDirectAccess(){
-      if(!this.directAccessEnabled){
+  enableDirectAccess(){
+    let self = this;
+
+    function addFunctionsFromMainDSU(){
+      if(!self.directAccessEnabled){
+        let sc = require("opendsu").loadAPI("sc");
         let availableFunctions = [
           "addFile",
           "addFiles",
@@ -156,18 +160,58 @@ class DSUStorage {
           "beginBatch",
           "commitBatch",
           "cancelBatch"
-      ];
+        ];
 
-        let sc = require("opendsu").loadAPI("sc");
 
         let mainDSU = sc.getMainDSU();
         for(let f of availableFunctions){
-          console.log(f);
-          this[f] = mainDSU[f];
+          self[f] = mainDSU[f];
         }
-        this.directAccessEnabled = true
+        self.directAccessEnabled = true
       }
     }
+
+    function getMainDSU(continuation){
+      let sc = require("opendsu").loadAPI("sc");
+      let mainDSU = undefined;
+      try{
+        mainDSU = sc.getMainDSU();
+      } catch(err){
+        //ignore on purpose
+      }
+
+      if(mainDSU){
+        continuation();
+      } else {
+        const opendsu = require("opendsu");
+        opendsu.loadAPI("http").doGet("/getSSIForMainDSU", function(err,res){
+          if (err) {
+            return reportUserRelevantError("Failed to enable direct DSUStorage access from Cardinal",err);
+          }
+
+          let config = opendsu.loadApi("config");
+
+          let mainSSI = opendsu.loadApi("keyssi").parse(res);
+          if(mainSSI.getHint() == "server"){
+            config.disableLocalVault();
+          }
+          opendsu.loadAPI("resolver").loadDSU(res, (err, mainDSU) => {
+            if (err) {
+               reportUserRelevantInfo("Reattempting to enable direct DSUStorage from Cardinal",err);
+              setTimeout(function(){
+                getMainDSU(continuation);
+              },100);
+              return ;
+            }
+            sc.setMainDSU(mainDSU);
+            continuation();
+          });
+        })
+      }
+    }
+
+    getMainDSU(addFunctionsFromMainDSU);
+  }
 
   call(name, ...args) {
     if(args.length === 0){
