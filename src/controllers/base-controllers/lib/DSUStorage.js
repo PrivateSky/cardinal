@@ -169,6 +169,8 @@ class DSUStorage {
         }
         self.directAccessEnabled = true;
         callback(undefined,true);
+      }else{
+        callback(undefined, true);
       }
     }
 
