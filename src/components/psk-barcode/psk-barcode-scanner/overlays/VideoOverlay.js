@@ -54,8 +54,8 @@ export default class VideoOverlay extends CanvasOverlay {
     if (this.overlayCanvas.getContext) {
       let ctx = this.overlayCanvas.getContext('2d');
       ctx.lineWidth = 5;
-      ctx.strokeStyle = '#48d96099'
-      ctx.fillStyle = '#48d96099';
+      ctx.strokeStyle = 'rgba(72, 217, 96, 0.4)';
+      ctx.fillStyle = 'rgba(72, 217, 96, 0.4)';
 
       ctx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height);
       ctx.beginPath();
@@ -72,7 +72,7 @@ export default class VideoOverlay extends CanvasOverlay {
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
-      ctx.strokeStyle = '#48d960FF'
+      ctx.strokeStyle = 'rgb(72, 217, 96)';
 
       this.addLensCorners(ctx, xPadding, yPadding, frameWidth, ANGLE_WIDTH);
 
@@ -148,7 +148,7 @@ export default class VideoOverlay extends CanvasOverlay {
     ctx.lineTo(xPadding + angleWidth, yPadding + frameWidth);
 
     ctx.lineWidth = 2;
-    ctx.strokeStyle = 'rgb(255, 255, 255)';
+    ctx.strokeStyle = 'rgba(255, 255, 255)';
     ctx.stroke();
   }
 }
