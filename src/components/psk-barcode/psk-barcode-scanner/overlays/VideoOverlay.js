@@ -118,7 +118,7 @@ export default class VideoOverlay extends CanvasOverlay {
     ctx.lineTo(holePoints[0][0], holePoints[0][1]);
     ctx.closePath();
 
-    ctx.fillStyle = '#77777799';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
     ctx.fill();
 
     this.addLensCorners(ctx, xPadding, yPadding, frameWidth, ANGLE_WIDTH);
@@ -148,7 +148,7 @@ export default class VideoOverlay extends CanvasOverlay {
     ctx.lineTo(xPadding + angleWidth, yPadding + frameWidth);
 
     ctx.lineWidth = 2;
-    ctx.strokeStyle = '#FFFFFF00';
+    ctx.strokeStyle = 'rgb(255, 255, 255)';
     ctx.stroke();
   }
 }
