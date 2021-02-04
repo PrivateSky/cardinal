@@ -23,7 +23,7 @@
         "test.watch": "stencil test --spec --e2e --watchAll",
         "generate": "stencil generate",
         "dist": "node ./bin/build_dist.js",
-        "build-dossier": "node ./bin/build_dossier.js"
+        "build-dossier": "node ./node_modules/octopus/scripts/buildDossier.js"
     },
     "dependencies": {
         "@stencil/router": "^1.0.1",
@@ -31,7 +31,7 @@
     },
     "devDependencies": {
         "@stencil/core": "^1.17.3",
-        "octopus": "git+http://github.com/privatesky/octopus.git#1.0.3"
+        "octopus": "git+http://github.com/privatesky/octopus.git"
     },
     "license": "MIT"
 }
