@@ -1,7 +1,8 @@
-import { Component, Element, Prop, State, Listen, h } from "@stencil/core";
+import {Component, Element, h, Listen, Prop, State, Watch} from "@stencil/core";
 
 import CustomTheme from "../../../decorators/CustomTheme";
-import { TableOfContentProperty } from "../../../decorators/TableOfContentProperty";
+import {TableOfContentProperty} from "../../../decorators/TableOfContentProperty";
+import {BindModel} from "../../../decorators";
 
 @Component({
   tag: 'psk-tab-navigator',
@@ -15,6 +16,7 @@ import { TableOfContentProperty } from "../../../decorators/TableOfContentProper
 export class PskTabNavigator {
   private tabData = [];
 
+  @BindModel() modelHandler;
   @CustomTheme()
 
   @Element() private _host: HTMLElement;
@@ -31,7 +33,7 @@ export class PskTabNavigator {
     propertyType: `number`,
     defaultValue: `0`
   })
-  @Prop({ mutable: true, reflect: true }) default: number = 0;
+  @Prop({mutable: true, reflect: true}) default: number = 0;
 
   @TableOfContentProperty({
     description: [
@@ -42,7 +44,30 @@ export class PskTabNavigator {
     propertyType: `string`,
     defaultValue: `horizontal`
   })
-  @Prop({ reflect: true }) layout = 'horizontal'
+  @Prop({reflect: true}) layout = 'horizontal'
+
+
+  @TableOfContentProperty({
+    description: [
+      `This property will enable or disable the possibility of switching tabs by clicking on them.`,
+    ],
+    isMandatory: false,
+    propertyType: `boolean`,
+    defaultValue: `false`
+  })
+  @Prop() tabNavigationDisabled = false;
+
+  @TableOfContentProperty({
+    description: [
+      `This property represents the current index of the tab navigator.`,
+      `By default the first tab is selected.`,
+      `The first tab is indexed with 0. If an invalid index is set, a warning will be thrown and the default value will be selected.`
+    ],
+    isMandatory: false,
+    propertyType: `number`,
+    defaultValue: `0`
+  })
+  @Prop() selected: number = 0;
 
   componentWillLoad() {
     const tabs = this._host.children;
@@ -52,18 +77,28 @@ export class PskTabNavigator {
         title: tabs[i].getAttribute('title')
       });
     }
-    this.default = this.__checkDefault();
-    this.tabNavigator = this.__renderTabNavigator(this.default);
+
+    this.default = this.__checkBoundaries("default", this.default);
+    let nextIndex = this.default;
+    if (this.selected) {
+      this.selected = this.__checkBoundaries("selected", this.selected);
+      nextIndex = this.selected;
+    }
+    this.tabNavigator = this.__renderTabNavigator(nextIndex);
   }
 
   componentDidLoad() {
-    this.__renderActiveTab(this.default);
+    let nextActiveIndex = this.default;
+    if (this.selected) {
+      nextActiveIndex = this.selected;
+    }
+    this.__renderActiveTab(nextActiveIndex);
   }
 
   @Listen('psk-tab-navigator:psk-select:change')
   onTabSelected(e) {
     e.stopImmediatePropagation();
-    const { value } = e.data;
+    const {value} = e.data;
     const selected = parseInt(value);
     this.__selectTab(selected);
   }
@@ -76,16 +111,26 @@ export class PskTabNavigator {
     this.__selectTab(selected);
   }
 
-  __checkDefault() {
-    if (!Number.isInteger(this.default)) {
-      console.warn('psk-tab-navigator:', `"default" value is not an integer`);
+  @Watch("selected")
+  selectedUpdate() {
+    this.selected = this.__checkBoundaries("selected", this.selected);
+    this.__selectTab(this.selected);
+  }
+
+  __checkBoundaries(paramName, index) {
+    if (!Number.isInteger(index)) {
+      console.warn('psk-tab-navigator:', `"${paramName}" value is not an integer`);
       return 0;
     }
-    if (this.default < 0 || this.default >= this._host.children.length) {
-      console.warn('psk-tab-navigator:', `"default" value is not in corresponding range [0, ${this._host.children.length - 1}]`);
+    if (index < 0) {
+      console.warn('psk-tab-navigator:', `"${paramName}" value is not in corresponding range [0, ${this._host.children.length - 1}]`);
       return 0;
     }
-    return this.default;
+    if (index >= this._host.children.length) {
+      console.warn('psk-tab-navigator:', `"${paramName}" value is not in corresponding range [0, ${this._host.children.length - 1}]`);
+      return this._host.children.length - 1;
+    }
+    return index;
   }
 
   __selectTab(selected) {
@@ -111,6 +156,7 @@ export class PskTabNavigator {
           <psk-select
             value={selected}
             select-options={options}
+            disabled={this.tabNavigationDisabled}
             event-name='psk-tab-navigator:psk-select:change'
           />
         </psk-form-row>
@@ -119,6 +165,7 @@ export class PskTabNavigator {
 
     return this.tabData.map(tab =>
       <psk-button
+        disabled={this.tabNavigationDisabled}
         class={{'active': tab.index === selected}}
         onClick={e => this.onTabClicked(e)}>{tab.title}
       </psk-button>
@@ -130,7 +177,7 @@ export class PskTabNavigator {
       <div class='tabs'>
         <div class='tab-navigator'>{this.tabNavigator}</div>
         <div class='tab-container'>
-          <slot name='tab-active' />
+          <slot name='tab-active'/>
         </div>
       </div>
     )
