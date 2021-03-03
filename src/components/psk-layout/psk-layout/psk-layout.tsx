@@ -3,6 +3,7 @@ import { Component, Element, Prop, Host, h } from '@stencil/core';
 import CustomTheme from '../../../decorators/CustomTheme';
 import { applyStyles, generateRule } from '../psk-layout.utils';
 import { TableOfContentProperty } from "../../../decorators/TableOfContentProperty";
+import { BindModel } from "../../decorators/BindModel";
 
 @Component({
   tag: 'psk-layout',
@@ -10,6 +11,8 @@ import { TableOfContentProperty } from "../../../decorators/TableOfContentProper
 })
 
 export class PskLayout {
+  @BindModel() modelHandler;
+  
   @CustomTheme()
 
   @Element() private __host: HTMLElement;
