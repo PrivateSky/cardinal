@@ -1,7 +1,7 @@
-import { Component, Element, Prop, Host, h } from '@stencil/core';
+import { Component, Element, Prop, h } from '@stencil/core';
 
 import CustomTheme from '../../../decorators/CustomTheme';
-import { applyStyles, generateRule } from '../psk-layout.utils';
+import { applyStyles, deleteStyle, generateRule } from '../psk-layout.utils';
 import { TableOfContentProperty } from "../../../decorators/TableOfContentProperty";
 import { BindModel } from "../../../decorators/BindModel";
 
@@ -12,7 +12,7 @@ import { BindModel } from "../../../decorators/BindModel";
 
 export class PskLayout {
   @BindModel() modelHandler;
-  
+
   @CustomTheme()
 
   @Element() private __host: HTMLElement;
@@ -165,11 +165,6 @@ export class PskLayout {
   })
   @Prop() alignContentY: string | null = null;
 
-  async componentWillLoad() {
-    const styles = generateRule(':host', this.__getProperties());
-    applyStyles(this.__host, styles);
-  }
-
   __getProperties() {
     const properties = { 'display': 'grid' };
 
@@ -199,10 +194,9 @@ export class PskLayout {
   }
 
   render() {
-    return (
-      <Host>
-        <slot/>
-      </Host>
-    )
+    const styles = generateRule(':host', this.__getProperties());
+    deleteStyle(this.__host, `psk-layout-styles`);
+    applyStyles(this.__host, styles, 'psk-layout-styles');
+    return <slot/>;
   }
 }

@@ -1,6 +1,7 @@
-function applyStyles(host: HTMLElement, styles: string) {
+function applyStyles(host: HTMLElement, styles: string, id: string = null) {
   /** shadow manner **/
   const style = document.createElement('style');
+  if (id) style.id = id;
   style.innerHTML = styles;
   host.shadowRoot.appendChild(style);
 
@@ -21,4 +22,9 @@ function applyStyles(host: HTMLElement, styles: string) {
   */
 }
 
-export { applyStyles }
+function deleteStyle(host: HTMLElement, id: string) {
+  const style = host.shadowRoot.querySelector(`#${id}`);
+  if (style) style.remove();
+}
+
+export { applyStyles, deleteStyle }

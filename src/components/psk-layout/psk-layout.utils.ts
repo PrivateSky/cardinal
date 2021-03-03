@@ -1,4 +1,4 @@
-import { applyStyles } from '../psk-style/psk-style.utils'
+import { applyStyles, deleteStyle } from '../psk-style/psk-style.utils'
 
 function generateRule(selector: string, properties: { [key: string]: string }) {
   let styles = `${selector} {\n`;
@@ -9,4 +9,4 @@ function generateRule(selector: string, properties: { [key: string]: string }) {
   return styles;
 }
 
-export { applyStyles, generateRule }
+export { applyStyles, deleteStyle, generateRule }
