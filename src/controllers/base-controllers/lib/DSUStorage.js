@@ -156,7 +156,7 @@ class DSUStorage {
           "rename",
           "unmount",
           "writeFile",
-          "listMountedDSUs",
+          "listMountedDossiers",
           "beginBatch",
           "commitBatch",
           "cancelBatch"
