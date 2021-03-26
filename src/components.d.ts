@@ -476,6 +476,8 @@ export namespace Components {
     interface PskTabNavigator {
         "default": number;
         "layout": string;
+        "selected": number;
+        "tabNavigationDisabled": boolean;
     }
     interface PskTable {
         "cellsWidth": string;
@@ -1733,6 +1735,8 @@ declare namespace LocalJSX {
     interface PskTabNavigator {
         "default"?: number;
         "layout"?: string;
+        "selected"?: number;
+        "tabNavigationDisabled"?: boolean;
     }
     interface PskTable {
         "cellsWidth"?: string;
