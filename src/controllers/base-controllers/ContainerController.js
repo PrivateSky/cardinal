@@ -184,7 +184,7 @@ export default class ContainerController {
 
 
   /* psk-modal functions */
-  showModal(modalName, bindContextData, returnCallback) {
+  showModal(modalName, bindContextData, returnCallback = () => {}) {
 
     const completeCallback = (...args) => {
       this.hideModal();
