@@ -217,6 +217,19 @@ export class PskBarcodeScanner {
         color: '#FFFFFF', background: 'transparent',
         borderRadius: '2px', border: '2px solid rgba(255, 255, 255, 0.75)',
         fontSize: '15px'
+      },
+      statusDiv:{
+        position: 'absolute',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        textAlign: 'center',
+        top: "50%",
+        color: '#FFFFFF',
+        background: 'transparent',
+        borderRadius: '2px',
+        border: '2px solid rgba(255, 255, 255, 0.75)',
+        fontSize: '15px',
+        padding: '0.3em 0.6em'
       }
     }
     const cardinal = (window['cardinal'] && window['cardinal']['base'] ? window['cardinal']['base'] : 'cardinal');
@@ -224,17 +237,18 @@ export class PskBarcodeScanner {
     return [
       <script async src={`${cardinal}/libs/zxing.js`}/>,
       <div title={this.title} style={style.barcodeWrapper}>
-        {
-          this.isCameraAvailable && !this.isScanDone
-          ? (
-            <div id="scanner-container" style={style.videoWrapper}>
-              <input type="file" accept="video/*" capture="camera" style={style.input}/>
-              <video id="video" muted autoplay playsinline={true} style={style.video}/>
-              <button onClick={_ => this.switchCamera()} style={style.button}>Change camera</button>
-            </div>
-          )
-          : <div>{this.status}</div>
-        }
+        <div id="scanner-container" style={style.videoWrapper}>
+          <input type="file" accept="video/*" capture="camera" style={style.input}/>
+          <video id="video" muted autoplay playsinline={true} style={style.video}/>
+          {
+            this.isScanDone ? <div style={style.statusDiv}>
+              <div class="spinner-border text-light" role="status">
+                <span class="sr-only">Loading... </span>
+              </div>
+            </div> : <div></div>
+          }
+          <button onClick={_ => this.switchCamera()} style={style.button}>Change camera</button>
+        </div>
       </div>
     ];
   }
