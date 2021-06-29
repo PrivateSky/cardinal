@@ -447,6 +447,7 @@ export namespace Components {
         "landingPath": string;
         "match": MatchResults;
         "params": string;
+        "refresh": any;
         "seed": string;
     }
     interface PskStepper {
@@ -1706,6 +1707,7 @@ declare namespace LocalJSX {
         "landingPath"?: string;
         "match"?: MatchResults;
         "params"?: string;
+        "refresh"?: any;
         "seed"?: string;
     }
     interface PskStepper {

@@ -50,9 +50,11 @@ export class PskSelfSovereignApp {
 
 	@Prop() history: RouterHistory;
 	@Prop() match: MatchResults;
+  @Prop() refresh;
 
 	@State() digestKeySsiHex;
 	@State() parsedParams;
+
 	@Element() element;
 
 	private eventHandler;
@@ -100,6 +102,7 @@ export class PskSelfSovereignApp {
 	@Watch("params")
 	@Watch("match")
   @Watch("landingPath")
+  @Watch("refresh")
 	loadApp(callback?) {
 		if (this.__hasRelevantMatchParams()) {
 			this.seed = this.match.params.keySSI;
@@ -154,7 +157,7 @@ export class PskSelfSovereignApp {
             // we are in a context in which SW are not enabled so the iframe must be identified by the seed
             const iframeKeySsi = $$.SSAPP_CONTEXT && $$.SSAPP_CONTEXT.BASE_URL && $$.SSAPP_CONTEXT.SEED ? this.seed : this.digestKeySsiHex;
 
-			const iframeSrc = basePath + "iframe/" + iframeKeySsi + (queryParams.length > 1 ? queryParams : "");
+			const iframeSrc = basePath + "iframe/" + iframeKeySsi + (queryParams.length > 1 ? queryParams + "&" + this.refresh : "?" + this.refresh);
       console.log("Loading sssap in: " + iframeSrc);
 			return (
 				<iframe
