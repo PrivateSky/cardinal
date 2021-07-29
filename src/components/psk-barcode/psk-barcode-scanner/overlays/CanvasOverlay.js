@@ -40,6 +40,9 @@ export default class CanvasOverlay {
       })
     }
 
+    if(!this.scannerContainer){
+      return;
+    }
     this.scannerContainer.appendChild(canvasElement);
     return canvasElement;
   }
