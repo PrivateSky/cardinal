@@ -23,7 +23,7 @@
         "test.watch": "stencil test --spec --e2e --watchAll",
         "generate": "stencil generate",
         "dist": "node ./bin/build_dist.js",
-        "build-dossier": "node ./node_modules/octopus/scripts/buildDossier.js"
+        "build-dossier": "node ./node_modules/octopus/scripts/buildDSU.js"
     },
     "dependencies": {
         "@stencil/router": "^1.0.1",
